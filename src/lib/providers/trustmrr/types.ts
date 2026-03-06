@@ -56,13 +56,29 @@ export interface TrustMRRDetailResponse {
 export interface TrustMRRListParams {
   page?: number;
   limit?: number;
-  sort?: "revenue-desc" | "growth-desc" | "name-asc";
+  sort?:
+    | "revenue-desc"
+    | "revenue-asc"
+    | "price-desc"
+    | "price-asc"
+    | "multiple-asc"
+    | "multiple-desc"
+    | "growth-desc"
+    | "growth-asc"
+    | "listed-desc"
+    | "listed-asc"
+    | "best-deal";
   category?: string;
   minMrr?: number;
   maxMrr?: number;
   minRevenue?: number;
   maxRevenue?: number;
   xHandle?: string;
+  onSale?: "true" | "false";
+  minGrowth?: number;
+  maxGrowth?: number;
+  minPrice?: number;
+  maxPrice?: number;
 }
 
 // Rate limit information from response headers

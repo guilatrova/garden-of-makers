@@ -46,6 +46,15 @@ export class TrustMRRProvider {
     if (params?.maxRevenue)
       queryParams.set("maxRevenue", params.maxRevenue.toString());
     if (params?.xHandle) queryParams.set("xHandle", params.xHandle);
+    if (params?.onSale) queryParams.set("onSale", params.onSale);
+    if (params?.minGrowth)
+      queryParams.set("minGrowth", params.minGrowth.toString());
+    if (params?.maxGrowth)
+      queryParams.set("maxGrowth", params.maxGrowth.toString());
+    if (params?.minPrice)
+      queryParams.set("minPrice", params.minPrice.toString());
+    if (params?.maxPrice)
+      queryParams.set("maxPrice", params.maxPrice.toString());
 
     const queryString = queryParams.toString();
     const url = `${this.baseUrl}/startups${queryString ? `?${queryString}` : ""}`;
