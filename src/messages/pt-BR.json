@@ -54,6 +54,22 @@
   "GardenPage": {
     "backToForest": "← Voltar à Floresta",
     "shareOnX": "Compartilhar no X",
+    "makerGarden": "Jardim de {name}",
+    "totalMRR": "MRR Total",
+    "totalCustomers": "Total de Clientes",
+    "products": "{count} produtos",
+    "followers": "{count} seguidores",
+    "gardenSize": {
+      "small": "Jardim Pequeno",
+      "medium": "Jardim",
+      "large": "Jardim Grande",
+      "estate": "Propriedade"
+    },
+    "viewGarden": "Ver Jardim →",
+    "productList": "Produtos",
+    "notFound": "Maker não encontrado",
+    "notFoundDesc": "Nenhum produto encontrado para este maker. Talvez ainda não esteja no TrustMRR.",
+    "searchInForest": "Buscar na Floresta",
     "techStack": "Stack Tecnológico",
     "cofounders": "Cofundadores",
     "profitMargin": "Margem de Lucro",
@@ -62,9 +78,7 @@
     "activeSubscriptions": "Assinaturas Ativas",
     "paymentProvider": "Gateway de Pagamento",
     "merchantOfRecord": "Merchant of Record",
-    "forSale": "À Venda",
-    "notFound": "Startup não encontrada",
-    "notFoundDesc": "Esta startup não existe ou foi removida."
+    "forSale": "À Venda"
   },
   "Navigation": {
     "home": "Início",
@@ -104,6 +118,7 @@
     "askingPrice": "Preço",
     "visitWebsite": "Visitar Site",
     "viewOnX": "Ver no X",
+    "viewGarden": "Ver Jardim de @{handle} →",
     "close": "Fechar"
   }
 }
