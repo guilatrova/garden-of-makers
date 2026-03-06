@@ -230,10 +230,7 @@ export default async function LeaderboardPage() {
                           </span>
                         </td>
                         <td className="px-4 py-4">
-                          <Link
-                            href={`/garden/${entry.slug}`}
-                            className="flex items-center gap-3 group"
-                          >
+                          <div className="flex items-center gap-3">
                             {entry.icon ? (
                               // eslint-disable-next-line @next/next/no-img-element
                               <img
@@ -247,17 +244,25 @@ export default async function LeaderboardPage() {
                               </div>
                             )}
                             <div>
-                              <div className="font-medium text-white group-hover:text-green-400 transition-colors">
+                              <div className="font-medium text-white">
                                 {entry.name}
                               </div>
-                              {entry.onSale && (
+                              {entry.xHandle && (
+                                <Link
+                                  href={`/garden/${entry.xHandle.replace("@", "")}`}
+                                  className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                                >
+                                  View @{entry.xHandle.replace("@", "")}&apos;s Garden →
+                                </Link>
+                              )}
+                              {entry.onSale && !entry.xHandle && (
                                 <div className="flex items-center gap-1 text-xs text-yellow-400">
                                   <Store className="h-3 w-3" />
                                   {t("forSale")}
                                 </div>
                               )}
                             </div>
-                          </Link>
+                          </div>
                         </td>
                         <td className="px-4 py-4">
                           <span className="font-mono text-lg font-semibold text-green-400">
@@ -302,9 +307,8 @@ export default async function LeaderboardPage() {
                 const categoryColor = getCategoryColor(entry.category);
 
                 return (
-                  <Link
+                  <div
                     key={entry.slug}
-                    href={`/garden/${entry.slug}`}
                     className="flex items-center gap-4 border-b border-gray-800/50 p-4 transition-colors hover:bg-gray-800/30"
                   >
                     <span
@@ -337,6 +341,14 @@ export default async function LeaderboardPage() {
                             <Store className="h-3 w-3 flex-shrink-0 text-yellow-400" />
                           )}
                         </div>
+                        {entry.xHandle && (
+                          <Link
+                            href={`/garden/${entry.xHandle.replace("@", "")}`}
+                            className="text-xs text-green-400 hover:text-green-300 transition-colors"
+                          >
+                            View @{entry.xHandle.replace("@", "")}&apos;s Garden →
+                          </Link>
+                        )}
                         <div className="flex items-center gap-2 text-sm">
                           <span className="font-mono text-green-400">
                             {formatMRR(entry.mrrCents)}
@@ -360,7 +372,7 @@ export default async function LeaderboardPage() {
                         </div>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 );
               })}
             </div>
