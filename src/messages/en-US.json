@@ -19,5 +19,40 @@
     "home": "Home",
     "forest": "Forest",
     "leaderboard": "Leaderboard"
+  },
+  "forest": {
+    "title": "Garden of Makers",
+    "subtitle": "Explore the forest of startups",
+    "loading": "Growing the forest...",
+    "startups": "{count} startups",
+    "controls": {
+      "title": "Flight Controls",
+      "move": "WASD to move",
+      "look": "Mouse to look (click to lock)",
+      "upDown": "Space/Shift for up/down",
+      "boost": "E for speed boost",
+      "escape": "Escape to unlock"
+    },
+    "filters": {
+      "all": "All",
+      "ai": "AI",
+      "saas": "SaaS",
+      "devtools": "Dev Tools",
+      "ecommerce": "E-commerce",
+      "fintech": "Fintech"
+    }
+  },
+  "drawer": {
+    "mrr": "MRR",
+    "customers": "Customers",
+    "growth": "30d Growth",
+    "revenue": "Revenue (30d)",
+    "provider": "Payment Provider",
+    "category": "Category",
+    "forSale": "For Sale",
+    "askingPrice": "Asking Price",
+    "visitWebsite": "Visit Website",
+    "viewOnX": "View on X",
+    "close": "Close"
   }
 }

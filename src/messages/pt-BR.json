@@ -19,5 +19,40 @@
     "home": "Início",
     "forest": "Floresta",
     "leaderboard": "Classificação"
+  },
+  "forest": {
+    "title": "Garden of Makers",
+    "subtitle": "Explore a floresta de startups",
+    "loading": "Cultivando a floresta...",
+    "startups": "{count} startups",
+    "controls": {
+      "title": "Controles de Voo",
+      "move": "WASD para mover",
+      "look": "Mouse para olhar (clique para travar)",
+      "upDown": "Espaço/Shift para subir/descer",
+      "boost": "E para acelerar",
+      "escape": "Esc para destravar"
+    },
+    "filters": {
+      "all": "Todas",
+      "ai": "IA",
+      "saas": "SaaS",
+      "devtools": "Dev Tools",
+      "ecommerce": "E-commerce",
+      "fintech": "Fintech"
+    }
+  },
+  "drawer": {
+    "mrr": "MRR",
+    "customers": "Clientes",
+    "growth": "Cresc. 30d",
+    "revenue": "Receita (30d)",
+    "provider": "Gateway de Pagamento",
+    "category": "Categoria",
+    "forSale": "À Venda",
+    "askingPrice": "Preço",
+    "visitWebsite": "Visitar Site",
+    "viewOnX": "Ver no X",
+    "close": "Fechar"
   }
 }

@@ -1,8 +1,23 @@
 /**
- * Forest Layout Engine Types
+ * Forest Service Types
  */
 
 import { TreeData } from "@/lib/services/tree/types";
+
+// === Forest Data Types ===
+
+export interface ForestData {
+  trees: TreeData[];
+  totalStartups: number;
+  categories: string[];
+  lastSyncedAt: string;
+}
+
+export interface ForestServiceOptions {
+  category?: string;
+}
+
+// === Forest Layout Engine Types ===
 
 export interface TreePosition {
   x: number;

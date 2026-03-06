@@ -1,15 +1,9 @@
 /**
- * Forest Service exports
+ * Forest Services
  */
 
-export { ForestLayoutEngine } from "./ForestLayoutEngine";
-export type {
-  TreePosition,
-  PositionedTree,
-  ForestLayoutConfig,
-} from "./types";
-export { DEFAULT_LAYOUT_CONFIG } from "./types";
 export {
+  ForestLayoutEngine,
   fibonacciSpiral,
   getDistance,
   getTreeCanopyRadius,
@@ -17,3 +11,12 @@ export {
   findValidPosition,
   isSpecialTree,
 } from "./ForestLayoutEngine";
+export { ForestService, forestService } from "./ForestService";
+export type {
+  TreePosition,
+  PositionedTree,
+  ForestLayoutConfig,
+  ForestData,
+  ForestServiceOptions,
+} from "./types";
+export { DEFAULT_LAYOUT_CONFIG } from "./types";

@@ -1,17 +1,35 @@
-import { useTranslations } from "next-intl";
+import { ForestService } from "@/lib/services/forest";
+import { ForestView } from "@/components/forest";
+import { TreeData } from "@/lib/services/tree/types";
 
-export default function ForestPage() {
-  const t = useTranslations("ForestPage");
+/**
+ * Forest Page
+ * Server component that fetches initial forest data
+ * Passes data to client ForestView component
+ */
+export default async function ForestPage() {
+  // Fetch initial forest data on the server
+  let initialTrees: TreeData[] = [];
+  let initialTotalStartups = 0;
+  let initialCategories: string[] = [];
+
+  try {
+    const forestService = new ForestService();
+    const forestData = await forestService.buildForest();
+
+    initialTrees = forestData.trees;
+    initialTotalStartups = forestData.totalStartups;
+    initialCategories = forestData.categories;
+  } catch (error) {
+    console.error("Failed to fetch initial forest data:", error);
+    // Let the client-side handle the error and retry
+  }
 
   return (
-    <main className="min-h-screen p-8">
-      <h1 className="text-3xl md:text-4xl font-bold text-green-400 mb-4">
-        {t("title")}
-      </h1>
-      <p className="text-green-200 mb-8">{t("description")}</p>
-      <div className="bg-green-900/30 border border-green-700 rounded-lg p-8 text-center">
-        <p className="text-green-300">{t("comingSoon")}</p>
-      </div>
-    </main>
+    <ForestView
+      initialTrees={initialTrees}
+      initialTotalStartups={initialTotalStartups}
+      initialCategories={initialCategories}
+    />
   );
 }

@@ -12,18 +12,24 @@ const TRUSTMRR_BASE_URL = "https://trustmrr.com/api/v1";
  * Server-side only - never expose API key to client
  */
 export class TrustMRRProvider {
-  private apiKey: string;
+  private apiKey: string | undefined;
   private baseUrl: string;
 
   constructor(apiKey?: string) {
-    const key = apiKey ?? process.env.TRUSTMRR_API_KEY;
-    if (!key) {
+    this.apiKey = apiKey ?? process.env.TRUSTMRR_API_KEY;
+    this.baseUrl = TRUSTMRR_BASE_URL;
+  }
+
+  /**
+   * Validate that API key is available
+   */
+  private ensureApiKey(): string {
+    if (!this.apiKey) {
       throw new Error(
         "TrustMRR API key is required. Set TRUSTMRR_API_KEY environment variable."
       );
     }
-    this.apiKey = key;
-    this.baseUrl = TRUSTMRR_BASE_URL;
+    return this.apiKey;
   }
 
   /**
@@ -81,10 +87,11 @@ export class TrustMRRProvider {
   private async fetchWithAuth<T>(
     url: string
   ): Promise<{ response: T; rateLimit: TrustMRRRateLimit }> {
+    const apiKey = this.ensureApiKey();
     const response = await fetch(url, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${this.apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
         Accept: "application/json",
         "Content-Type": "application/json",
       },

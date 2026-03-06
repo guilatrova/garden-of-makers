@@ -28,3 +28,11 @@ export { Terrain } from "./Terrain";
 
 export { Skybox } from "./Skybox";
 export type { SkyboxProps } from "./Skybox";
+
+export { FlightCamera } from "./FlightCamera";
+
+export { ForestScene } from "./ForestScene";
+export type { ForestSceneProps } from "./ForestScene";
+
+export { ForestView } from "./ForestView";
+export type { ForestViewProps } from "./ForestView";
