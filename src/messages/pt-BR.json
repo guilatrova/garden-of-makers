@@ -1,0 +1,23 @@
+{
+  "HomePage": {
+    "title": "Garden of Makers",
+    "description": "Sua receita, visualizada como uma floresta viva. Cada startup é uma árvore. O MRR determina a altura. Os clientes viram frutas.",
+    "exploreForest": "Explorar Floresta",
+    "leaderboard": "Classificação"
+  },
+  "ForestPage": {
+    "title": "A Floresta",
+    "description": "Voe por uma floresta viva de startups. Cada árvore representa uma empresa real com receita verificada.",
+    "comingSoon": "Visualização 3D da Floresta em breve!"
+  },
+  "LeaderboardPage": {
+    "title": "Classificação",
+    "description": "Top startups classificadas por MRR e crescimento.",
+    "comingSoon": "Classificação em breve!"
+  },
+  "Navigation": {
+    "home": "Início",
+    "forest": "Floresta",
+    "leaderboard": "Classificação"
+  }
+}

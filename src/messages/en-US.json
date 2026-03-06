@@ -1,0 +1,23 @@
+{
+  "HomePage": {
+    "title": "Garden of Makers",
+    "description": "Your revenue, visualized as a living forest. Every startup is a tree. MRR determines height. Customers become fruits.",
+    "exploreForest": "Explore Forest",
+    "leaderboard": "Leaderboard"
+  },
+  "ForestPage": {
+    "title": "The Forest",
+    "description": "Fly through a living forest of startups. Each tree represents a real company with verified revenue.",
+    "comingSoon": "3D Forest visualization coming soon!"
+  },
+  "LeaderboardPage": {
+    "title": "Leaderboard",
+    "description": "Top startups ranked by MRR and growth.",
+    "comingSoon": "Leaderboard coming soon!"
+  },
+  "Navigation": {
+    "home": "Home",
+    "forest": "Forest",
+    "leaderboard": "Leaderboard"
+  }
+}
