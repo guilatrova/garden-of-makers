@@ -245,15 +245,24 @@ export function StartupDrawer({ startup, onClose }: StartupDrawerProps) {
               )}
 
               {startup.xHandle && (
-                <a
-                  href={`https://x.com/${startup.xHandle.replace("@", "")}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2 rounded-lg bg-gray-800 px-4 py-3 text-white hover:bg-gray-700 transition-colors"
-                >
-                  <Twitter className="h-4 w-4" />
-                  {t("viewOnX")}
-                </a>
+                <>
+                  <a
+                    href={`https://x.com/${startup.xHandle.replace("@", "")}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 rounded-lg bg-gray-800 px-4 py-3 text-white hover:bg-gray-700 transition-colors"
+                  >
+                    <Twitter className="h-4 w-4" />
+                    {t("viewOnX")}
+                  </a>
+                  <a
+                    href={`/garden/${startup.xHandle.replace("@", "")}`}
+                    className="flex items-center justify-center gap-2 rounded-lg bg-green-900/30 px-4 py-3 text-green-400 hover:bg-green-900/50 transition-colors border border-green-800"
+                  >
+                    <span className="text-lg">🌳</span>
+                    {t("viewGarden", { handle: startup.xHandle.replace("@", "") })}
+                  </a>
+                </>
               )}
             </div>
           </div>
