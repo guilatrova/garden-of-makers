@@ -8,6 +8,7 @@
 import { TreeData } from "@/lib/services/tree/types";
 import { getCategoryDisplayName, getCategoryColor } from "@/lib/constants/categories";
 import { useTranslations } from "next-intl";
+import Image from "next/image";
 import { X, ExternalLink, Twitter } from "lucide-react";
 
 interface StartupDrawerProps {
@@ -139,10 +140,12 @@ export function StartupDrawer({ startup, onClose }: StartupDrawerProps) {
           <div className="flex items-center justify-between border-b border-gray-800 p-4">
             <div className="flex items-center gap-3">
               {startup.icon && (
-                <img
+                <Image
                   src={startup.icon}
                   alt=""
-                  className="h-10 w-10 rounded-lg object-cover"
+                  width={40}
+                  height={40}
+                  className="rounded-lg object-cover"
                 />
               )}
               <h2 className="text-xl font-bold text-white">{startup.name}</h2>

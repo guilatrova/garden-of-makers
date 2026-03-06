@@ -1,9 +1,36 @@
 {
   "HomePage": {
-    "title": "Garden of Makers",
-    "description": "Your revenue, visualized as a living forest. Every startup is a tree. MRR determines height. Customers become fruits.",
-    "exploreForest": "Explore Forest",
-    "leaderboard": "Leaderboard"
+    "title": "Your revenue, visualized as a living forest",
+    "subtitle": "Every startup is a tree. MRR determines height. Customers become fruits. Explore an interactive 3D forest of real startups with verified revenue.",
+    "exploreForest": "Explore the Forest →",
+    "leaderboard": "View Leaderboard",
+    "howItWorks": {
+      "title": "How It Works",
+      "step1Title": "Verified Revenue",
+      "step1Desc": "Startups verify their revenue through payment platforms like Stripe, Lemon Squeezy, and more.",
+      "step2Title": "Revenue Becomes Trees",
+      "step2Desc": "MRR determines tree height. From tiny seeds ($0) to towering World Trees ($1M+).",
+      "step3Title": "Explore the Forest",
+      "step3Desc": "Fly through an interactive 3D forest. Discover startups, compare growth, find opportunities."
+    },
+    "tiers": {
+      "title": "Tree Tiers",
+      "subtitle": "How big is your tree?"
+    },
+    "fruits": {
+      "title": "Fruit System",
+      "subtitle": "Customers become fruits on your tree"
+    },
+    "stats": {
+      "totalStartups": "Startups",
+      "totalMRR": "Total MRR",
+      "worldTrees": "World Trees"
+    },
+    "footer": {
+      "poweredBy": "Powered by TrustMRR",
+      "builtBy": "Built by",
+      "source": "Source Code"
+    }
   },
   "ForestPage": {
     "title": "The Forest",
@@ -12,8 +39,32 @@
   },
   "LeaderboardPage": {
     "title": "Leaderboard",
-    "description": "Top startups ranked by MRR and growth.",
-    "comingSoon": "Leaderboard coming soon!"
+    "description": "Top startups ranked by monthly recurring revenue",
+    "rank": "#",
+    "startup": "Startup",
+    "mrr": "MRR",
+    "customers": "Customers",
+    "growth": "Growth (30d)",
+    "tier": "Tier",
+    "category": "Category",
+    "forSale": "For Sale",
+    "loadMore": "Load More",
+    "noResults": "No startups found"
+  },
+  "GardenPage": {
+    "backToForest": "← Back to Forest",
+    "shareOnX": "Share on X",
+    "techStack": "Tech Stack",
+    "cofounders": "Cofounders",
+    "profitMargin": "Profit Margin",
+    "totalRevenue": "Total Revenue",
+    "growth": "Growth (30d)",
+    "activeSubscriptions": "Active Subs",
+    "paymentProvider": "Payment Provider",
+    "merchantOfRecord": "Merchant of Record",
+    "forSale": "For Sale",
+    "notFound": "Startup not found",
+    "notFoundDesc": "This startup doesn't exist or has been removed."
   },
   "Navigation": {
     "home": "Home",

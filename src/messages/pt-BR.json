@@ -1,9 +1,36 @@
 {
   "HomePage": {
-    "title": "Garden of Makers",
-    "description": "Sua receita, visualizada como uma floresta viva. Cada startup é uma árvore. O MRR determina a altura. Os clientes viram frutas.",
-    "exploreForest": "Explorar Floresta",
-    "leaderboard": "Classificação"
+    "title": "Sua receita, visualizada como uma floresta viva",
+    "subtitle": "Cada startup é uma árvore. O MRR determina a altura. Os clientes viram frutas. Explore uma floresta 3D interativa de startups reais com receita verificada.",
+    "exploreForest": "Explorar a Floresta →",
+    "leaderboard": "Ver Classificação",
+    "howItWorks": {
+      "title": "Como Funciona",
+      "step1Title": "Receita Verificada",
+      "step1Desc": "Startups verificam sua receita através de plataformas de pagamento como Stripe, Lemon Squeezy e outras.",
+      "step2Title": "Receita Vira Árvores",
+      "step2Desc": "O MRR determina a altura da árvore. De pequenas sementes ($0) a imensas Árvores Mundiais ($1M+).",
+      "step3Title": "Explore a Floresta",
+      "step3Desc": "Voe por uma floresta 3D interativa. Descubra startups, compare crescimento, encontre oportunidades."
+    },
+    "tiers": {
+      "title": "Níveis de Árvores",
+      "subtitle": "Quão grande é a sua árvore?"
+    },
+    "fruits": {
+      "title": "Sistema de Frutas",
+      "subtitle": "Clientes viram frutas na sua árvore"
+    },
+    "stats": {
+      "totalStartups": "Startups",
+      "totalMRR": "MRR Total",
+      "worldTrees": "Árvores Mundiais"
+    },
+    "footer": {
+      "poweredBy": "Powered by TrustMRR",
+      "builtBy": "Criado por",
+      "source": "Código Fonte"
+    }
   },
   "ForestPage": {
     "title": "A Floresta",
@@ -12,8 +39,32 @@
   },
   "LeaderboardPage": {
     "title": "Classificação",
-    "description": "Top startups classificadas por MRR e crescimento.",
-    "comingSoon": "Classificação em breve!"
+    "description": "Top startups classificadas por receita recorrente mensal",
+    "rank": "#",
+    "startup": "Startup",
+    "mrr": "MRR",
+    "customers": "Clientes",
+    "growth": "Crescimento (30d)",
+    "tier": "Nível",
+    "category": "Categoria",
+    "forSale": "À Venda",
+    "loadMore": "Carregar Mais",
+    "noResults": "Nenhuma startup encontrada"
+  },
+  "GardenPage": {
+    "backToForest": "← Voltar à Floresta",
+    "shareOnX": "Compartilhar no X",
+    "techStack": "Stack Tecnológico",
+    "cofounders": "Cofundadores",
+    "profitMargin": "Margem de Lucro",
+    "totalRevenue": "Receita Total",
+    "growth": "Crescimento (30d)",
+    "activeSubscriptions": "Assinaturas Ativas",
+    "paymentProvider": "Gateway de Pagamento",
+    "merchantOfRecord": "Merchant of Record",
+    "forSale": "À Venda",
+    "notFound": "Startup não encontrada",
+    "notFoundDesc": "Esta startup não existe ou foi removida."
   },
   "Navigation": {
     "home": "Início",

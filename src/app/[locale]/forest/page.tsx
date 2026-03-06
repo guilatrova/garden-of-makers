@@ -1,6 +1,12 @@
+import { Metadata } from "next";
 import { ForestService } from "@/lib/services/forest";
 import { ForestView } from "@/components/forest";
 import { TreeData } from "@/lib/services/tree/types";
+
+export const metadata: Metadata = {
+  title: "Explore the Forest | Garden of Makers",
+  description: "Fly through an interactive 3D forest of startups. Each tree represents a real company with verified revenue data.",
+};
 
 /**
  * Forest Page
@@ -26,10 +32,12 @@ export default async function ForestPage() {
   }
 
   return (
-    <ForestView
-      initialTrees={initialTrees}
-      initialTotalStartups={initialTotalStartups}
-      initialCategories={initialCategories}
-    />
+    <div className="-mt-[73px] -mb-[88px] h-screen w-screen overflow-hidden">
+      <ForestView
+        initialTrees={initialTrees}
+        initialTotalStartups={initialTotalStartups}
+        initialCategories={initialCategories}
+      />
+    </div>
   );
 }
