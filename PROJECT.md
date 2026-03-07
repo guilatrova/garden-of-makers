@@ -654,3 +654,12 @@ npm run build        # Next.js production build — catches type errors
 - Responsive layout (3D canvas + UI panels)
 - Production deploy to Vercel
 - Landing page copy + visuals
+
+### M6: Maker Gardens
+- Change `/garden/[slug]` (single startup) → `/garden/[xHandle]` (maker's garden)
+- A maker with multiple products = multiple trees in their personal garden
+- Fetch via `GET /startups?xHandle=<handle>` (TrustMRR already supports this)
+- Garden page shows: all maker's trees, total MRR, total customers, voável mini-scene
+- Share card per maker: "The garden of @marc_louvion — $50k+ MRR"
+- Maker profile: xHandle, xName, xFollowerCount (from cofounders data)
+- This is the viral mechanic — makers share their personal garden on X
