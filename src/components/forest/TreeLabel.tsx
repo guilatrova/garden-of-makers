@@ -30,7 +30,7 @@ export function TreeLabel({ data, visible, position }: TreeLabelProps) {
 
   const categoryName = getCategoryDisplayName(data.category);
   const categoryColor = getCategoryColor(data.category);
-  const mrrFormatted = formatRevenue(data.mrrCents);
+  const mrrFormatted = formatRevenue(data.mrr);
   const growthIndicator = getGrowthIndicator(data.growth30d);
   const growthPositive = data.growth30d !== null && data.growth30d > 0;
 

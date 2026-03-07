@@ -16,9 +16,9 @@ export interface TrustMRRStartup {
   paymentProvider: string;
   targetAudience: string | null;
   revenue: {
-    last30Days: number; // dollars (from API)
-    mrr: number; // dollars (from API)
-    total: number; // dollars (from API)
+    last30Days: number; // cents (from API), converted to dollars by mapper
+    mrr: number; // cents (from API), converted to dollars by mapper
+    total: number; // cents (from API), converted to dollars by mapper
   };
   customers: number;
   activeSubscriptions: number;

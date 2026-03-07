@@ -16,14 +16,14 @@ export interface TreeData {
   icon: string | null;
   category: string | null;
   paymentProvider: string;
-  mrrCents: number;
-  revenueLast30DaysCents: number;
-  totalRevenueCents: number;
+  mrr: number;
+  revenueLast30Days: number;
+  totalRevenue: number;
   customers: number;
   activeSubscriptions: number;
   growth30d: number | null;
   onSale: boolean;
-  askingPriceCents: number | null;
+  askingPrice: number | null;
   xHandle: string | null;
   tier: TreeTier;
   fruits: FruitBreakdown;

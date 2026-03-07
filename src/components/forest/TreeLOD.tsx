@@ -383,7 +383,7 @@ export function TreeLOD({ data, onClick, showLabel }: TreeLODProps) {
       {lodLevel === "far" && <TreeBillboard tier={data.tier} height={height} canopyColorOverride={canopyColorOverride} glowing={glowing} />}
 
       {/* ForSaleSign visible at near and mid LOD */}
-      {data.onSale && lodLevel !== "far" && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPriceCents={data.askingPriceCents} dealRating={dealRating} />}
+      {data.onSale && lodLevel !== "far" && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPrice={data.askingPrice} dealRating={dealRating} />}
     </group>
   );
 }

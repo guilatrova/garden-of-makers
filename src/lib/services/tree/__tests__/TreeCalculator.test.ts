@@ -1,7 +1,7 @@
 /**
  * TreeCalculator Unit Tests
  * Tests for tier calculation and fruit breakdown
- * All monetary values are in dollars (matching TrustMRR API format)
+ * All monetary values are in dollars (converted from cents at the mapper boundary)
  */
 
 import { describe, it, expect } from "vitest";

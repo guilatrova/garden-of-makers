@@ -1,11 +1,11 @@
 /**
  * Format utilities for currency and numbers
- * All monetary values from the TrustMRR API are in dollars.
+ * All monetary values are in dollars (converted from cents at the mapper boundary).
  */
 
 /**
  * Format MRR for display
- * Input is dollars (e.g. 15088 = $15,088)
+ * Input is dollars (e.g. 267 = $267)
  */
 export function formatMRR(mrr: number): string {
   if (mrr >= 1_000_000) {

@@ -217,7 +217,7 @@ function FruitLegendSection({ t }: { t: Awaited<ReturnType<typeof getTranslation
 async function StatsSection({ t }: { t: Awaited<ReturnType<typeof getTranslations>> }) {
   let stats = {
     totalStartups: 0,
-    totalMrrCents: 0,
+    totalMrr: 0,
     worldTrees: 0,
   };
 
@@ -226,8 +226,8 @@ async function StatsSection({ t }: { t: Awaited<ReturnType<typeof getTranslation
     const forestData = await forestService.buildForest();
     
     stats.totalStartups = forestData.totalStartups;
-    stats.totalMrrCents = forestData.trees.reduce(
-      (sum, tree) => sum + tree.mrrCents,
+    stats.totalMrr = forestData.trees.reduce(
+      (sum, tree) => sum + tree.mrr,
       0
     );
     stats.worldTrees = forestData.trees.filter(
@@ -237,14 +237,14 @@ async function StatsSection({ t }: { t: Awaited<ReturnType<typeof getTranslation
     // Use placeholder stats if fetch fails
     stats = {
       totalStartups: 142,
-      totalMrrCents: 15000000000, // $150M
+      totalMrr: 150_000_000, // $150M
       worldTrees: 3,
     };
   }
 
   const statItems = [
     { label: t("stats.totalStartups"), value: stats.totalStartups.toLocaleString() },
-    { label: t("stats.totalMRR"), value: formatMRR(stats.totalMrrCents) },
+    { label: t("stats.totalMRR"), value: formatMRR(stats.totalMrr) },
     { label: t("stats.worldTrees"), value: stats.worldTrees.toString() },
   ];
 

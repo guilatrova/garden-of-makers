@@ -267,7 +267,7 @@ function ProductCard({
           </div>
           <div className="mt-1 flex items-center gap-2 text-sm text-gray-400">
             <span>{tierEmoji}</span>
-            <span className="font-mono text-green-400">{formatMRR(product.mrrCents)}</span>
+            <span className="font-mono text-green-400">{formatMRR(product.mrr)}</span>
             <span>·</span>
             <span className="flex items-center gap-1">
               <Users className="h-3 w-3" />

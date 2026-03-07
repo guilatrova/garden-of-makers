@@ -109,7 +109,7 @@ export function Building({ data, onClick, showLabel }: BuildingProps) {
   const seed = hashStr(data.slug);
 
   // Lit percentage based on MRR (more revenue = more windows lit)
-  const effectiveMRR = data.mrrCents > 0 ? data.mrrCents : data.revenueLast30DaysCents;
+  const effectiveMRR = data.mrr > 0 ? data.mrr : data.revenueLast30Days;
   const litPct = Math.min(0.95, 0.1 + (effectiveMRR / 10_000_000) * 0.85);
 
   const floorH = 3;

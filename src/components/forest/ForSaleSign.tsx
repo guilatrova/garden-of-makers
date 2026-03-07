@@ -16,7 +16,7 @@ import { formatAskingPrice } from "@/lib/utils/format";
 export interface ForSaleSignProps {
   treeHeight: number;
   canopyRadius: number;
-  askingPriceCents?: number | null;
+  askingPrice?: number | null;
   dealRating?: DealRating | null;
 }
 
@@ -27,10 +27,10 @@ const DEAL_FLAG_STYLES: Record<DealRating, { bg: string; emissive: string; textC
 
 const DEFAULT_FLAG_STYLE = { bg: "#888888", emissive: "#888888", textColor: "#CCCCCC", priceColor: "#AAAAAA", label: "ON SALE" };
 
-export function ForSaleSign({ treeHeight, canopyRadius, askingPriceCents, dealRating }: ForSaleSignProps) {
+export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating }: ForSaleSignProps) {
   const flagRef = useRef<THREE.Group>(null);
 
-  const hasPrice = askingPriceCents != null && askingPriceCents > 0;
+  const hasPrice = askingPrice != null && askingPrice > 0;
   const style = dealRating ? DEAL_FLAG_STYLES[dealRating] : DEFAULT_FLAG_STYLE;
   const sizeScale = dealRating === "great" ? 1 : dealRating === "good" ? 0.75 : 0.5;
 
@@ -112,7 +112,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPriceCents, dealRa
             anchorY="middle"
             fontWeight={700}
           >
-            {formatAskingPrice(askingPriceCents)}
+            {formatAskingPrice(askingPrice)}
           </Text>
         )}
         {/* Price - back */}
@@ -126,7 +126,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPriceCents, dealRa
             fontWeight={700}
             rotation={[0, Math.PI, 0]}
           >
-            {formatAskingPrice(askingPriceCents)}
+            {formatAskingPrice(askingPrice)}
           </Text>
         )}
       </group>

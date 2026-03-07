@@ -48,24 +48,24 @@ describe("calculateTotalMRR", () => {
 
   it("calculates total MRR for single product", () => {
     const products: TreeData[] = [
-      createMockTreeData({ mrrCents: 50000 }),
+      createMockTreeData({ mrr: 50000 }),
     ];
     expect(calculateTotalMRR(products)).toBe(50000);
   });
 
   it("calculates total MRR for multiple products", () => {
     const products: TreeData[] = [
-      createMockTreeData({ mrrCents: 50000 }),
-      createMockTreeData({ mrrCents: 100000 }),
-      createMockTreeData({ mrrCents: 25000 }),
+      createMockTreeData({ mrr: 50000 }),
+      createMockTreeData({ mrr: 100000 }),
+      createMockTreeData({ mrr: 25000 }),
     ];
     expect(calculateTotalMRR(products)).toBe(175000);
   });
 
   it("handles products with 0 MRR", () => {
     const products: TreeData[] = [
-      createMockTreeData({ mrrCents: 0 }),
-      createMockTreeData({ mrrCents: 100000 }),
+      createMockTreeData({ mrr: 0 }),
+      createMockTreeData({ mrr: 100000 }),
     ];
     expect(calculateTotalMRR(products)).toBe(100000);
   });
@@ -165,14 +165,14 @@ function createMockTreeData(overrides: Partial<TreeData> = {}): TreeData {
     icon: null,
     category: "saas",
     paymentProvider: "stripe",
-    mrrCents: 50000,
-    revenueLast30DaysCents: 50000,
-    totalRevenueCents: 500000,
+    mrr: 50000,
+    revenueLast30Days: 50000,
+    totalRevenue: 500000,
     customers: 100,
     activeSubscriptions: 100,
     growth30d: 0.1,
     onSale: false,
-    askingPriceCents: null,
+    askingPrice: null,
     xHandle: "@founder",
     tier: "mature",
     fruits: {

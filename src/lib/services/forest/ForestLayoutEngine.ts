@@ -63,8 +63,8 @@ export class ForestLayoutEngine {
 
     // Sort by effective MRR descending (biggest trees first)
     const sortedTrees = [...trees].sort((a, b) => {
-      const mrrA = a.mrrCents ?? a.revenueLast30DaysCents ?? 0;
-      const mrrB = b.mrrCents ?? b.revenueLast30DaysCents ?? 0;
+      const mrrA = a.mrr ?? a.revenueLast30Days ?? 0;
+      const mrrB = b.mrr ?? b.revenueLast30Days ?? 0;
       return mrrB - mrrA;
     });
 

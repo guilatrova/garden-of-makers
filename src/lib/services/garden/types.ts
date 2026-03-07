@@ -37,7 +37,7 @@ export function calculateGardenSize(productCount: number): GardenSize {
  * Calculate total MRR from all products
  */
 export function calculateTotalMRR(products: TreeData[]): number {
-  return products.reduce((sum, product) => sum + product.mrrCents, 0);
+  return products.reduce((sum, product) => sum + product.mrr, 0);
 }
 
 /**

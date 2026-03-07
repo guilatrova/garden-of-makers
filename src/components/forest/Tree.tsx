@@ -54,7 +54,7 @@ function getInterpolatedHeight(tree: TreeData): number {
   if (config.maxMrr !== null && config.minMrr !== config.maxMrr) {
     const tierRange = config.maxMrr - config.minMrr;
     // Use effective MRR for consistent height calculation
-    const effectiveMRR = getEffectiveMRR(tree.mrrCents, tree.revenueLast30DaysCents);
+    const effectiveMRR = getEffectiveMRR(tree.mrr, tree.revenueLast30Days);
     const mrrInTier = effectiveMRR - config.minMrr;
     const progress = Math.min(1, Math.max(0, mrrInTier / tierRange));
     

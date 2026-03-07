@@ -15,10 +15,10 @@ import { FRUIT_VALUES } from "@/lib/constants/fruits";
 
 /**
  * Calculate effective MRR for tier determination
- * Falls back to revenueLast30DaysCents if MRR is 0 (e.g., one-time products)
+ * Falls back to revenueLast30Days if MRR is 0 (e.g., one-time products)
  */
-export function getEffectiveMRR(mrrCents: number, revenueLast30DaysCents: number = 0): number {
-  return mrrCents > 0 ? mrrCents : revenueLast30DaysCents;
+export function getEffectiveMRR(mrr: number, revenueLast30Days: number = 0): number {
+  return mrr > 0 ? mrr : revenueLast30Days;
 }
 
 /**
@@ -104,12 +104,12 @@ export function getFruitValue(type: FruitType): number {
 export type DealRating = "great" | "good";
 
 export function getDealRating(tree: TreeData): DealRating | null {
-  if (!tree.onSale || !tree.askingPriceCents || tree.askingPriceCents <= 0) return null;
+  if (!tree.onSale || !tree.askingPrice || tree.askingPrice <= 0) return null;
 
-  const monthlyRevenue = getEffectiveMRR(tree.mrrCents, tree.revenueLast30DaysCents);
+  const monthlyRevenue = getEffectiveMRR(tree.mrr, tree.revenueLast30Days);
   if (monthlyRevenue <= 0) return null;
 
-  const arrMultiple = tree.askingPriceCents / (monthlyRevenue * 12);
+  const arrMultiple = tree.askingPrice / (monthlyRevenue * 12);
   if (arrMultiple <= 2) return "great";
   if (arrMultiple <= 3) return "good";
   return null;

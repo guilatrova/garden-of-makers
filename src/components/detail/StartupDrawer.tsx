@@ -146,14 +146,14 @@ export function StartupDrawer({ startup, onClose, siblingCount = 0, siblingIndex
               <div>
                 <div className="text-sm text-gray-400">{t("mrr")}</div>
                 <div className="text-3xl font-bold text-green-400">
-                  {formatRevenue(startup.mrrCents)}
+                  {formatRevenue(startup.mrr)}
                 </div>
               </div>
               <div className="text-3xl font-bold text-gray-600">|</div>
               <div>
                 <div className="text-sm text-gray-400">{t("revenue")}</div>
                 <div className="text-3xl font-bold text-green-400">
-                  {formatRevenue(startup.revenueLast30DaysCents)}
+                  {formatRevenue(startup.revenueLast30Days)}
                 </div>
               </div>
             </div>
@@ -204,9 +204,9 @@ export function StartupDrawer({ startup, onClose, siblingCount = 0, siblingIndex
             {startup.onSale && (
               <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 p-4">
                 <div className="text-sm text-yellow-400">{t("forSale")}</div>
-                {startup.askingPriceCents && (
+                {startup.askingPrice && (
                   <div className="mt-1 text-xl font-bold text-yellow-300">
-                    {t("askingPrice")}: {formatPrice(startup.askingPriceCents)}
+                    {t("askingPrice")}: {formatPrice(startup.askingPrice)}
                   </div>
                 )}
               </div>

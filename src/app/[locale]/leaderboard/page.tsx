@@ -244,7 +244,7 @@ export default async function LeaderboardPage() {
                         </td>
                         <td className="px-4 py-4">
                           <span className="font-mono text-lg font-semibold text-green-400">
-                            {formatMRR(entry.mrrCents)}
+                            {formatMRR(entry.mrr)}
                           </span>
                         </td>
                         <td className="px-4 py-4 text-gray-300">
@@ -329,7 +329,7 @@ export default async function LeaderboardPage() {
                         )}
                         <div className="flex items-center gap-2 text-sm">
                           <span className="font-mono text-green-400">
-                            {formatMRR(entry.mrrCents)}
+                            {formatMRR(entry.mrr)}
                           </span>
                           <span className="text-gray-500">·</span>
                           <GrowthBadge growth={entry.growth30d} />
