@@ -3,6 +3,7 @@ import {
   TierConfig,
   FruitBreakdown,
   FruitType,
+  TreeData,
 } from "./types";
 import { TIER_CONFIGS } from "@/lib/constants/tiers";
 import { FRUIT_VALUES } from "@/lib/constants/fruits";
@@ -93,6 +94,26 @@ export function getFruitBreakdown(customers: number): FruitBreakdown {
  */
 export function getFruitValue(type: FruitType): number {
   return FRUIT_VALUES[type];
+}
+
+/**
+ * Rate an on-sale tree deal based on ARR multiple (askingPrice / annualRevenue).
+ * - "great": <= 2x ARR
+ * - "good":  <= 3x ARR
+ * - null:    not on sale, no price, no revenue, or multiple > 3x
+ */
+export type DealRating = "great" | "good";
+
+export function getDealRating(tree: TreeData): DealRating | null {
+  if (!tree.onSale || !tree.askingPriceCents || tree.askingPriceCents <= 0) return null;
+
+  const monthlyRevenue = getEffectiveMRR(tree.mrrCents, tree.revenueLast30DaysCents);
+  if (monthlyRevenue <= 0) return null;
+
+  const arrMultiple = tree.askingPriceCents / (monthlyRevenue * 12);
+  if (arrMultiple <= 2) return "great";
+  if (arrMultiple <= 3) return "good";
+  return null;
 }
 
 /**

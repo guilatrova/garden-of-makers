@@ -10,12 +10,21 @@ import { useRef } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
+import { DealRating } from "@/lib/services/tree/TreeCalculator";
 
 export interface ForSaleSignProps {
   treeHeight: number;
   canopyRadius: number;
   askingPriceCents?: number | null;
+  dealRating?: DealRating | null;
 }
+
+const DEAL_FLAG_STYLES: Record<DealRating, { bg: string; emissive: string; textColor: string; priceColor: string; label: string }> = {
+  great: { bg: "#FFD700", emissive: "#FFD700", textColor: "#CC0000", priceColor: "#990000", label: "GREAT DEAL" },
+  good:  { bg: "#CC2222", emissive: "#CC2222", textColor: "#FFFFFF", priceColor: "#FFD0D0", label: "GOOD DEAL" },
+};
+
+const DEFAULT_FLAG_STYLE = { bg: "#888888", emissive: "#888888", textColor: "#CCCCCC", priceColor: "#AAAAAA", label: "ON SALE" };
 
 function formatAskingPrice(cents: number): string {
   const dollars = cents / 100;
@@ -24,16 +33,18 @@ function formatAskingPrice(cents: number): string {
   return `$${dollars.toFixed(0)}`;
 }
 
-export function ForSaleSign({ treeHeight, canopyRadius, askingPriceCents }: ForSaleSignProps) {
+export function ForSaleSign({ treeHeight, canopyRadius, askingPriceCents, dealRating }: ForSaleSignProps) {
   const flagRef = useRef<THREE.Group>(null);
 
   const hasPrice = askingPriceCents != null && askingPriceCents > 0;
+  const style = dealRating ? DEAL_FLAG_STYLES[dealRating] : DEFAULT_FLAG_STYLE;
+  const sizeScale = dealRating === "great" ? 1 : dealRating === "good" ? 0.75 : 0.5;
 
   // Scale flag based on tree height - very large to be visible from far
-  const flagWidth = Math.max(12, treeHeight * 0.7);
-  const flagHeight = Math.max(6, treeHeight * 0.4);
+  const flagWidth = Math.max(12, treeHeight * 0.7) * sizeScale;
+  const flagHeight = Math.max(6, treeHeight * 0.4) * sizeScale;
   const poleHeight = flagHeight * 2;
-  const poleRadius = Math.max(0.3, treeHeight * 0.02);
+  const poleRadius = Math.max(0.3, treeHeight * 0.02) * sizeScale;
 
   // Flag sits on top of the canopy
   const baseY = treeHeight * 0.6 + canopyRadius;
@@ -66,35 +77,35 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPriceCents }: ForS
         <mesh>
           <planeGeometry args={[flagWidth, flagHeight]} />
           <meshStandardMaterial
-            color="#FFD700"
+            color={style.bg}
             side={THREE.DoubleSide}
-            emissive="#FFD700"
+            emissive={style.emissive}
             emissiveIntensity={0.3}
           />
         </mesh>
 
-        {/* "ON SALE" - front */}
+        {/* Label - front */}
         <Text
           position={[0, titleY, 0.02]}
           fontSize={titleSize}
-          color="#CC0000"
+          color={style.textColor}
           anchorX="center"
           anchorY="middle"
           fontWeight={700}
         >
-          ON SALE
+          {style.label}
         </Text>
-        {/* "ON SALE" - back */}
+        {/* Label - back */}
         <Text
           position={[0, titleY, -0.02]}
           fontSize={titleSize}
-          color="#CC0000"
+          color={style.textColor}
           anchorX="center"
           anchorY="middle"
           fontWeight={700}
           rotation={[0, Math.PI, 0]}
         >
-          ON SALE
+          {style.label}
         </Text>
 
         {/* Price - front */}
@@ -102,7 +113,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPriceCents }: ForS
           <Text
             position={[0, priceY, 0.02]}
             fontSize={priceSize}
-            color="#990000"
+            color={style.priceColor}
             anchorX="center"
             anchorY="middle"
             fontWeight={700}
@@ -115,7 +126,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPriceCents }: ForS
           <Text
             position={[0, priceY, -0.02]}
             fontSize={priceSize}
-            color="#990000"
+            color={style.priceColor}
             anchorX="center"
             anchorY="middle"
             fontWeight={700}

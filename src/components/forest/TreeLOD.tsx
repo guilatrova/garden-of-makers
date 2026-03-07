@@ -12,8 +12,9 @@ import { useRef, useState, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import { Billboard } from "@react-three/drei";
 import * as THREE from "three";
+import type { MeshStandardMaterial } from "three";
 import { TreeData } from "@/lib/services/tree/types";
-import { getTierConfig } from "@/lib/services/tree/TreeCalculator";
+import { getTierConfig, getDealRating, DealRating } from "@/lib/services/tree/TreeCalculator";
 import { BASE_TREE_HEIGHT } from "@/lib/constants/tiers";
 import { CANOPY_COLORS, TRUNK_COLORS } from "./Tree";
 import { FruitCluster } from "./FruitCluster";
@@ -27,6 +28,11 @@ export interface TreeLODProps {
 }
 
 type LODLevel = "near" | "mid" | "far";
+
+const DEAL_CANOPY_COLORS: Record<DealRating, string> = {
+  great: "#FFD700", // Gold
+  good: "#CC2222",  // Red
+};
 
 // Distance thresholds for LOD levels - scaled for larger trees
 const LOD_THRESHOLDS = {
@@ -46,8 +52,8 @@ const seededRandom = (n: number) => {
 /**
  * Simple billboard sprite for far LOD
  */
-function TreeBillboard({ tier, height }: { tier: import("@/lib/services/tree/types").TreeTier; height: number }) {
-  const canopyColor = CANOPY_COLORS[tier];
+function TreeBillboard({ tier, height, canopyColorOverride, glowing }: { tier: import("@/lib/services/tree/types").TreeTier; height: number; canopyColorOverride?: string; glowing?: boolean }) {
+  const canopyColor = canopyColorOverride ?? CANOPY_COLORS[tier];
   const trunkColor = TRUNK_COLORS[tier];
 
   // Scale based on tree height
@@ -58,10 +64,12 @@ function TreeBillboard({ tier, height }: { tier: import("@/lib/services/tree/typ
       {/* Canopy blob */}
       <mesh>
         <circleGeometry args={[scale * 0.75, 8]} />
-        <meshBasicMaterial
+        <meshStandardMaterial
           color={canopyColor}
           transparent
           opacity={0.8}
+          emissive={glowing ? canopyColor : "#000000"}
+          emissiveIntensity={glowing ? 0.5 : 0}
         />
       </mesh>
       {/* Trunk indicator */}
@@ -76,12 +84,19 @@ function TreeBillboard({ tier, height }: { tier: import("@/lib/services/tree/typ
 /**
  * Simplified tree for mid LOD (no fruits, no label)
  */
-function SimplifiedTree({ data }: { data: TreeData }) {
+function SimplifiedTree({ data, canopyColorOverride, glowing }: { data: TreeData; canopyColorOverride?: string; glowing?: boolean }) {
   const tierConfig = getTierConfig(data.tier);
   const height = BASE_TREE_HEIGHT * tierConfig.relativeHeight;
+  const canopyMatRef = useRef<MeshStandardMaterial>(null);
 
   const trunkColor = TRUNK_COLORS[data.tier];
-  const canopyColor = CANOPY_COLORS[data.tier];
+  const canopyColor = canopyColorOverride ?? CANOPY_COLORS[data.tier];
+
+  useFrame(({ clock }) => {
+    if (glowing && canopyMatRef.current) {
+      canopyMatRef.current.emissiveIntensity = 0.3 + Math.sin(clock.elapsedTime * 2) * 0.2;
+    }
+  });
 
   const trunkHeight = height * 0.6;
   const trunkY = trunkHeight / 2;
@@ -93,7 +108,7 @@ function SimplifiedTree({ data }: { data: TreeData }) {
     return (
       <mesh position={[0, height * 0.5, 0]}>
         <sphereGeometry args={[tierConfig.canopyRadius, 4, 3]} />
-        <meshStandardMaterial color={canopyColor} flatShading />
+        <meshStandardMaterial ref={canopyMatRef} color={canopyColor} flatShading emissive={glowing ? canopyColor : "#000000"} emissiveIntensity={glowing ? 0.3 : 0} />
       </mesh>
     );
   }
@@ -116,7 +131,7 @@ function SimplifiedTree({ data }: { data: TreeData }) {
       {/* Simple canopy */}
       <mesh position={[0, canopyY, 0]}>
         <icosahedronGeometry args={[tierConfig.canopyRadius, 0]} />
-        <meshStandardMaterial color={canopyColor} flatShading />
+        <meshStandardMaterial ref={canopyMatRef} color={canopyColor} flatShading emissive={glowing ? canopyColor : "#000000"} emissiveIntensity={glowing ? 0.3 : 0} />
       </mesh>
     </group>
   );
@@ -129,16 +144,27 @@ function FullTree({
   data,
   onClick,
   showLabel,
+  canopyColorOverride,
+  glowing,
 }: {
   data: TreeData;
   onClick?: (data: TreeData) => void;
   showLabel?: boolean;
+  canopyColorOverride?: string;
+  glowing?: boolean;
 }) {
   const tierConfig = getTierConfig(data.tier);
   const height = BASE_TREE_HEIGHT * tierConfig.relativeHeight;
-  
+  const canopyMatRef = useRef<MeshStandardMaterial>(null);
+
   const trunkColor = TRUNK_COLORS[data.tier];
-  const canopyColor = CANOPY_COLORS[data.tier];
+  const canopyColor = canopyColorOverride ?? CANOPY_COLORS[data.tier];
+
+  useFrame(({ clock }) => {
+    if (glowing && canopyMatRef.current) {
+      canopyMatRef.current.emissiveIntensity = 0.3 + Math.sin(clock.elapsedTime * 2) * 0.2;
+    }
+  });
 
   const trunkHeight = height * 0.6;
   const trunkY = trunkHeight / 2;
@@ -228,7 +254,7 @@ function FullTree({
             data.tier === "world" || data.tier === "ancient" ? 2 : 1,
           ]}
         />
-        <meshStandardMaterial color={canopyColor} flatShading roughness={0.8} />
+        <meshStandardMaterial ref={canopyMatRef} color={canopyColor} flatShading roughness={0.8} emissive={glowing ? canopyColor : "#000000"} emissiveIntensity={glowing ? 0.3 : 0} />
       </mesh>
 
       {/* Fruits */}
@@ -286,6 +312,10 @@ export function TreeLOD({ data, onClick, showLabel }: TreeLODProps) {
   const tierConfig = useMemo(() => getTierConfig(data.tier), [data.tier]);
   const height = BASE_TREE_HEIGHT * tierConfig.relativeHeight;
 
+  const dealRating = useMemo(() => getDealRating(data), [data]);
+  const canopyColorOverride = dealRating ? DEAL_CANOPY_COLORS[dealRating] : undefined;
+  const glowing = dealRating === "great";
+
   // Invisible hitbox: always present, covers the full tree height + canopy
   const trunkTop = height * 0.6;
   const canopyCenter = trunkTop + tierConfig.canopyRadius * 0.5;
@@ -309,13 +339,13 @@ export function TreeLOD({ data, onClick, showLabel }: TreeLODProps) {
       </mesh>
 
       {lodLevel === "near" && (
-        <FullTree data={data} showLabel={showLabel} />
+        <FullTree data={data} showLabel={showLabel} canopyColorOverride={canopyColorOverride} glowing={glowing} />
       )}
-      {lodLevel === "mid" && <SimplifiedTree data={data} />}
-      {lodLevel === "far" && <TreeBillboard tier={data.tier} height={height} />}
+      {lodLevel === "mid" && <SimplifiedTree data={data} canopyColorOverride={canopyColorOverride} glowing={glowing} />}
+      {lodLevel === "far" && <TreeBillboard tier={data.tier} height={height} canopyColorOverride={canopyColorOverride} glowing={glowing} />}
 
       {/* ForSaleSign visible at near and mid LOD */}
-      {data.onSale && lodLevel !== "far" && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPriceCents={data.askingPriceCents} />}
+      {data.onSale && lodLevel !== "far" && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPriceCents={data.askingPriceCents} dealRating={dealRating} />}
     </group>
   );
 }
