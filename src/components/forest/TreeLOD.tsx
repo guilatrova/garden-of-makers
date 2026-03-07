@@ -166,7 +166,6 @@ function FullTree({
           <sphereGeometry args={[tierConfig.canopyRadius, 4, 3]} />
           <meshStandardMaterial color={trunkColor} flatShading />
         </mesh>
-        {data.onSale && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPriceCents={data.askingPriceCents} />}
       </group>
     );
   }
@@ -189,7 +188,6 @@ function FullTree({
             <meshStandardMaterial color={canopyColor} flatShading />
           </mesh>
         ))}
-        {data.onSale && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPriceCents={data.askingPriceCents} />}
       </group>
     );
   }
@@ -202,7 +200,6 @@ function FullTree({
           <icosahedronGeometry args={[tierConfig.canopyRadius, 1]} />
           <meshStandardMaterial color={canopyColor} flatShading />
         </mesh>
-        {data.onSale && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPriceCents={data.askingPriceCents} />}
       </group>
     );
   }
@@ -250,8 +247,6 @@ function FullTree({
         />
       )}
 
-      {/* For Sale Sign */}
-      {data.onSale && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPriceCents={data.askingPriceCents} />}
     </group>
   );
 }
@@ -318,6 +313,9 @@ export function TreeLOD({ data, onClick, showLabel }: TreeLODProps) {
       )}
       {lodLevel === "mid" && <SimplifiedTree data={data} />}
       {lodLevel === "far" && <TreeBillboard tier={data.tier} height={height} />}
+
+      {/* ForSaleSign rendered at all LOD levels so it's visible from far */}
+      {data.onSale && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPriceCents={data.askingPriceCents} />}
     </group>
   );
 }
