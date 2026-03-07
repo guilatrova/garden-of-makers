@@ -1,52 +1,86 @@
 import { NextResponse } from "next/server";
-import { CacheService } from "@/lib/services/cache";
-import { ForestData } from "@/lib/services/forest/types";
+import { createServiceClient } from "@/lib/utils/supabase/server";
+import { TreeService } from "@/lib/services/tree";
+import { ForestLayoutEngine } from "@/lib/services/forest/ForestLayoutEngine";
+import { mapRowToStartup, StartupRow } from "@/lib/utils/supabase/mappers";
 
-// Revalidate every hour (ISR)
 export const revalidate = 3600;
-
-const CACHE_KEY_FOREST = "forest_all";
 
 /**
  * GET /api/forest
- * Returns forest data from cache.
- * Data is populated by POST /api/sync — this route never calls TrustMRR directly.
- * If cache is empty, returns empty forest with a hint to trigger sync.
+ * Reads all startups from Supabase and returns positioned forest data.
+ * Optional: ?category=SaaS
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const cacheService = new CacheService();
+    const { searchParams } = new URL(request.url);
+    const category = searchParams.get("category");
 
-    // Always read from cache
-    const cached = await cacheService.get<ForestData>(CACHE_KEY_FOREST);
+    const supabase = createServiceClient();
+    const treeService = new TreeService();
+    const layoutEngine = new ForestLayoutEngine();
 
-    if (cached) {
-      return NextResponse.json(cached, {
-        headers: {
-          "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
-        },
-      });
+    // Query startups from Supabase
+    let query = supabase
+      .from("startups")
+      .select("*")
+      .order("revenue_last_30d_cents", { ascending: false });
+
+    if (category) {
+      query = query.ilike("category", category);
     }
 
-    // Cache empty — no sync has run yet
-    return NextResponse.json(
-      {
+    const { data: startups, error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    if (!startups || startups.length === 0) {
+      return NextResponse.json({
         trees: [],
         totalStartups: 0,
         categories: [],
         lastSyncedAt: null,
-        _hint: "Cache is empty. Trigger a sync via POST /api/sync",
+        _hint: "No startups in database. Trigger a sync via POST /api/sync",
+      });
+    }
+
+    const rows = startups as unknown as StartupRow[];
+
+    // Map DB rows → TrustMRRStartup format → TreeData
+    const trees = rows.map((row) =>
+      treeService.mapToTreeData(mapRowToStartup(row))
+    );
+
+    const positionedTrees = layoutEngine.positionTrees(trees);
+
+    const categories = [
+      ...new Set(rows.map((s) => s.category).filter(Boolean)),
+    ].sort();
+
+    const latestFetch = rows.reduce(
+      (latest, s) =>
+        s._last_fetch_at > latest ? s._last_fetch_at : latest,
+      rows[0]._last_fetch_at
+    );
+
+    return NextResponse.json(
+      {
+        trees: positionedTrees,
+        totalStartups: startups.length,
+        categories,
+        lastSyncedAt: latestFetch,
       },
       {
-        status: 200,
         headers: {
-          "Cache-Control": "public, s-maxage=60",
+          "Cache-Control":
+            "public, s-maxage=3600, stale-while-revalidate=7200",
         },
       }
     );
   } catch (error) {
     console.error("Forest API error:", error);
-
     return NextResponse.json(
       {
         error: "Failed to fetch forest data",

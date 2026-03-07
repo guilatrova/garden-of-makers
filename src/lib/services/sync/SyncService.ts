@@ -1,36 +1,19 @@
 /**
  * SyncService
- * Handles incremental fetching of TrustMRR data and caching.
- * Designed to be called by a cron job or external trigger.
+ * Incrementally fetches TrustMRR data and persists to Supabase tables.
  * Respects rate limits by fetching in batches across multiple invocations.
  */
 
 import { TrustMRRProvider, TrustMRRStartup } from "@/lib/providers/trustmrr";
-import { TreeService } from "@/lib/services/tree";
-import { ForestLayoutEngine } from "@/lib/services/forest/ForestLayoutEngine";
-import { ForestData } from "@/lib/services/forest/types";
-import { CacheService } from "@/lib/services/cache";
+import { createServiceClient } from "@/lib/utils/supabase/server";
 
-const CACHE_KEY_FOREST = "forest_all";
-const CACHE_KEY_SYNC_STATE = "sync_state";
-const CACHE_KEY_RAW_STARTUPS = "raw_startups";
-const CACHE_TTL_MINUTES = 120; // 2 hours
-const PAGES_PER_RUN = 15; // Stay under 20 req/min rate limit
+const PAGES_PER_RUN = 15;
 const PAGE_SIZE = 50;
 
-interface SyncState {
-  lastPage: number;
-  totalPages: number | null;
-  totalStartups: number;
-  isComplete: boolean;
-  lastRunAt: string;
-  startedAt: string;
-}
-
 export interface SyncResult {
-  status: "partial" | "complete" | "already_fresh";
+  status: "partial" | "complete" | "error";
   pagesProcessed: number;
-  totalStartups: number;
+  startupsUpserted: number;
   totalPages: number | null;
   currentPage: number;
   isComplete: boolean;
@@ -39,48 +22,46 @@ export interface SyncResult {
 
 export class SyncService {
   private provider: TrustMRRProvider;
-  private treeService: TreeService;
-  private layoutEngine: ForestLayoutEngine;
-  private cache: CacheService;
 
   constructor() {
     this.provider = new TrustMRRProvider();
-    this.treeService = new TreeService();
-    this.layoutEngine = new ForestLayoutEngine();
-    this.cache = new CacheService();
   }
 
   /**
    * Run an incremental sync batch.
-   * Each invocation fetches up to PAGES_PER_RUN pages.
-   * Call repeatedly until result.isComplete === true.
+   * Each invocation fetches up to PAGES_PER_RUN pages and upserts to Supabase.
    */
   async runSync(): Promise<SyncResult> {
     const startTime = Date.now();
+    const supabase = createServiceClient();
 
-    // Get current sync state (or start fresh)
-    let state = await this.cache.get<SyncState>(CACHE_KEY_SYNC_STATE);
-    let rawStartups = await this.cache.get<TrustMRRStartup[]>(CACHE_KEY_RAW_STARTUPS);
+    // Get or create sync state
+    const { data: rawState } = await supabase
+      .from("sync_state")
+      .select("*")
+      .eq("sync_key", "main")
+      .single();
 
-    if (!state || state.isComplete) {
-      // Start a new sync cycle
-      state = {
-        lastPage: 0,
-        totalPages: null,
-        totalStartups: 0,
-        isComplete: false,
-        lastRunAt: new Date().toISOString(),
-        startedAt: new Date().toISOString(),
-      };
-      rawStartups = [];
-    }
+    const stateRow = rawState as unknown as {
+      last_page: number;
+      total_pages: number | null;
+      is_complete: boolean;
+    } | null;
 
-    if (!rawStartups) {
-      rawStartups = [];
+    let lastPage = stateRow?.last_page ?? 0;
+    let totalPages = stateRow?.total_pages ?? null;
+    const isAlreadyComplete = stateRow?.is_complete ?? false;
+
+    // If previous sync completed, start fresh
+    if (isAlreadyComplete) {
+      lastPage = 0;
+      totalPages = null;
     }
 
     let pagesProcessed = 0;
-    let currentPage = state.lastPage + 1;
+    let startupsUpserted = 0;
+    let currentPage = lastPage + 1;
+    let syncComplete = false;
 
     try {
       for (let i = 0; i < PAGES_PER_RUN; i++) {
@@ -90,16 +71,18 @@ export class SyncService {
           sort: "revenue-desc",
         });
 
-        rawStartups.push(...response.data);
-        pagesProcessed++;
-
         // Calculate total pages on first fetch
-        if (state.totalPages === null) {
-          state.totalPages = Math.ceil(response.meta.total / PAGE_SIZE);
+        if (totalPages === null) {
+          totalPages = Math.ceil(response.meta.total / PAGE_SIZE);
         }
 
+        // Upsert startups to Supabase
+        const upserted = await this.upsertStartups(supabase, response.data);
+        startupsUpserted += upserted;
+        pagesProcessed++;
+
         if (!response.meta.hasMore) {
-          state.isComplete = true;
+          syncComplete = true;
           break;
         }
 
@@ -121,67 +104,92 @@ export class SyncService {
       }
     }
 
-    // Update state
-    state.lastPage = currentPage - 1;
-    state.totalStartups = rawStartups.length;
-    state.lastRunAt = new Date().toISOString();
+    // Update sync state
+    const syncStatePayload = {
+      sync_key: "main",
+      last_page: currentPage - (syncComplete ? 0 : 1),
+      total_pages: totalPages,
+      total_startups: startupsUpserted,
+      is_complete: syncComplete,
+      last_run_at: new Date().toISOString(),
+      ...(isAlreadyComplete || !stateRow
+        ? { started_at: new Date().toISOString() }
+        : {}),
+    };
 
-    // Save raw startups and state (long TTL so it survives between cron runs)
-    await this.cache.set(CACHE_KEY_RAW_STARTUPS, rawStartups, CACHE_TTL_MINUTES);
-    await this.cache.set(CACHE_KEY_SYNC_STATE, state, CACHE_TTL_MINUTES);
-
-    // Build forest from whatever we have so far and cache it
-    await this.buildAndCacheForest(rawStartups);
-
-    const duration = Date.now() - startTime;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    await (supabase.from("sync_state") as any).upsert(syncStatePayload, {
+      onConflict: "sync_key",
+    });
 
     return {
-      status: state.isComplete ? "complete" : "partial",
+      status: syncComplete ? "complete" : "partial",
       pagesProcessed,
-      totalStartups: rawStartups.length,
-      totalPages: state.totalPages,
-      currentPage: state.lastPage,
-      isComplete: state.isComplete,
-      duration,
+      startupsUpserted,
+      totalPages,
+      currentPage,
+      isComplete: syncComplete,
+      duration: Date.now() - startTime,
     };
   }
 
   /**
-   * Reset sync state to force a full re-sync on next run.
+   * Reset sync state to force a full re-sync.
    */
   async resetSync(): Promise<void> {
-    await this.cache.invalidate(CACHE_KEY_SYNC_STATE);
-    await this.cache.invalidate(CACHE_KEY_RAW_STARTUPS);
-    await this.cache.invalidate(CACHE_KEY_FOREST);
+    const supabase = createServiceClient();
+    await supabase.from("sync_state").delete().eq("sync_key", "main");
+    // Optionally clear all startups:
+    // await supabase.from("startups").delete().neq("slug", "");
   }
 
   /**
-   * Build forest from raw startups and save to cache.
-   * This is called after every sync batch so the forest
-   * progressively improves.
+   * Upsert startups from TrustMRR API response into Supabase.
+   * Uses slug as the conflict key.
    */
-  private async buildAndCacheForest(
+  private async upsertStartups(
+    supabase: ReturnType<typeof createServiceClient>,
     startups: TrustMRRStartup[]
-  ): Promise<void> {
-    const categories = new Set<string>();
+  ): Promise<number> {
+    if (startups.length === 0) return 0;
 
-    for (const startup of startups) {
-      if (startup.category) {
-        categories.add(startup.category);
-      }
+    const rows = startups.map((s) => ({
+      slug: s.slug,
+      name: s.name,
+      icon: s.icon,
+      description: s.description,
+      website: s.website,
+      country: s.country,
+      founded_date: s.foundedDate,
+      category: s.category,
+      payment_provider: s.paymentProvider,
+      target_audience: s.targetAudience,
+      mrr_cents: Math.round(s.revenue.mrr),
+      revenue_last_30d_cents: Math.round(s.revenue.last30Days),
+      revenue_total_cents: Math.round(s.revenue.total),
+      customers: s.customers,
+      active_subscriptions: s.activeSubscriptions,
+      growth_30d: s.growth30d,
+      profit_margin_last_30d: s.profitMarginLast30Days,
+      multiple: s.multiple,
+      on_sale: s.onSale,
+      asking_price_cents: s.askingPrice ? Math.round(s.askingPrice) : null,
+      first_listed_for_sale_at: s.firstListedForSaleAt,
+      x_handle: s.xHandle,
+      _last_fetch_at: new Date().toISOString(),
+    }));
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from("startups") as any).upsert(rows, {
+      onConflict: "slug",
+    });
+
+    if (error) {
+      console.error("SyncService upsert error:", error);
+      throw error;
     }
 
-    const trees = startups.map((s) => this.treeService.mapToTreeData(s));
-    const positionedTrees = this.layoutEngine.positionTrees(trees);
-
-    const forestData: ForestData = {
-      trees: positionedTrees,
-      totalStartups: startups.length,
-      categories: Array.from(categories).sort(),
-      lastSyncedAt: new Date().toISOString(),
-    };
-
-    await this.cache.set(CACHE_KEY_FOREST, forestData, CACHE_TTL_MINUTES);
+    return rows.length;
   }
 }
 

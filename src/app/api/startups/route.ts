@@ -1,14 +1,11 @@
 import { NextResponse } from "next/server";
-import { CacheService } from "@/lib/services/cache";
-import { ForestData } from "@/lib/services/forest/types";
-import { TreeData } from "@/lib/services/tree/types";
-
-const CACHE_KEY_FOREST = "forest_all";
+import { createServiceClient } from "@/lib/utils/supabase/server";
+import { StartupRow } from "@/lib/utils/supabase/mappers";
 
 /**
  * GET /api/startups
- * Returns startups from cache with optional filters.
- * No longer calls TrustMRR directly — reads from synced cache.
+ * Queries startups directly from Supabase with filters and pagination.
+ * All queries hit indexed columns.
  */
 export async function GET(request: Request) {
   try {
@@ -21,69 +18,67 @@ export async function GET(request: Request) {
     const sort = searchParams.get("sort") ?? "revenue-desc";
     const onSale = searchParams.get("onSale");
 
-    const cacheService = new CacheService();
-    const cached = await cacheService.get<ForestData>(CACHE_KEY_FOREST);
+    const supabase = createServiceClient();
 
-    if (!cached) {
-      return NextResponse.json({
-        data: [],
-        meta: { total: 0, page, limit, hasMore: false },
-        _hint: "Cache is empty. Trigger a sync via POST /api/sync",
-      });
-    }
+    // Build query
+    let query = supabase.from("startups").select("*", { count: "exact" });
 
-    // Filter
-    let filtered: TreeData[] = [...cached.trees];
-
+    // Filters (all indexed)
     if (category) {
-      filtered = filtered.filter(
-        (t) => t.category?.toLowerCase() === category.toLowerCase()
-      );
+      query = query.ilike("category", category);
     }
-
     if (xHandle) {
-      filtered = filtered.filter(
-        (t) => t.xHandle?.toLowerCase() === xHandle.toLowerCase()
-      );
+      query = query.ilike("x_handle", xHandle);
     }
-
     if (onSale === "true") {
-      filtered = filtered.filter((t) => t.onSale);
+      query = query.eq("on_sale", true);
     } else if (onSale === "false") {
-      filtered = filtered.filter((t) => !t.onSale);
+      query = query.eq("on_sale", false);
     }
 
-    // Sort
-    filtered.sort((a, b) => {
-      switch (sort) {
-        case "revenue-asc":
-          return a.revenueLast30DaysCents - b.revenueLast30DaysCents;
-        case "revenue-desc":
-          return b.revenueLast30DaysCents - a.revenueLast30DaysCents;
-        case "growth-desc":
-          return (b.growth30d ?? 0) - (a.growth30d ?? 0);
-        case "growth-asc":
-          return (a.growth30d ?? 0) - (b.growth30d ?? 0);
-        case "name-asc":
-          return a.name.localeCompare(b.name);
-        default:
-          return b.revenueLast30DaysCents - a.revenueLast30DaysCents;
-      }
-    });
+    // Sorting (all indexed)
+    switch (sort) {
+      case "revenue-asc":
+        query = query.order("revenue_last_30d_cents", { ascending: true });
+        break;
+      case "revenue-desc":
+        query = query.order("revenue_last_30d_cents", { ascending: false });
+        break;
+      case "growth-desc":
+        query = query.order("growth_30d", { ascending: false, nullsFirst: false });
+        break;
+      case "growth-asc":
+        query = query.order("growth_30d", { ascending: true, nullsFirst: false });
+        break;
+      case "name-asc":
+        query = query.order("name", { ascending: true });
+        break;
+      default:
+        query = query.order("revenue_last_30d_cents", { ascending: false });
+    }
 
-    // Paginate
-    const total = filtered.length;
-    const startIndex = (page - 1) * limit;
-    const paginated = filtered.slice(startIndex, startIndex + limit);
-    const hasMore = startIndex + limit < total;
+    // Pagination
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+    query = query.range(from, to);
+
+    const { data, count, error } = await query;
+
+    if (error) {
+      throw error;
+    }
+
+    const total = count ?? 0;
+    const hasMore = from + limit < total;
+
+    const rows = (data ?? []) as unknown as StartupRow[];
 
     return NextResponse.json({
-      data: paginated,
+      data: rows,
       meta: { total, page, limit, hasMore },
     });
   } catch (error) {
     console.error("Startups API error:", error);
-
     return NextResponse.json(
       {
         error: "Failed to fetch startups",

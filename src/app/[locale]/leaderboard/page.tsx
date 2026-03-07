@@ -1,9 +1,9 @@
 import { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
-import { TrustMRRProvider } from "@/lib/providers/trustmrr";
-import { CacheService } from "@/lib/services/cache";
+import { createServiceClient } from "@/lib/utils/supabase/server";
 import { TreeService } from "@/lib/services/tree";
 import { TreeData } from "@/lib/services/tree/types";
+import { mapRowToStartup, StartupRow } from "@/lib/utils/supabase/mappers";
 import { getCategoryDisplayName, getCategoryColor } from "@/lib/constants/categories";
 import { Link } from "@/i18n/routing";
 import { ArrowUpRight, ArrowDownRight, Minus, TrendingUp, Store } from "lucide-react";
@@ -108,34 +108,25 @@ function GrowthBadge({ growth }: { growth: number | null }) {
  * Fetch leaderboard data with caching
  */
 async function getLeaderboardData(): Promise<LeaderboardEntry[]> {
-  const cacheService = new CacheService();
-  const cacheKey = "leaderboard";
-
-  // Try cache first
-  const cached = await cacheService.get<LeaderboardEntry[]>(cacheKey);
-  if (cached) {
-    return cached;
-  }
-
-  // Fetch from TrustMRR
-  const provider = new TrustMRRProvider();
+  const supabase = createServiceClient();
   const treeService = new TreeService();
 
-  const { response } = await provider.listStartups({
-    page: 1,
-    limit: 50,
-    sort: "revenue-desc",
-  });
+  const { data, error } = await supabase
+    .from("startups")
+    .select("*")
+    .order("revenue_last_30d_cents", { ascending: false })
+    .limit(50);
 
-  const entries: LeaderboardEntry[] = response.data.map((startup, index) => ({
-    ...treeService.mapToTreeData(startup),
+  if (error || !data || data.length === 0) {
+    return [];
+  }
+
+  const rows = data as unknown as StartupRow[];
+
+  return rows.map((row, index) => ({
+    ...treeService.mapToTreeData(mapRowToStartup(row)),
     rank: index + 1,
   }));
-
-  // Cache for 60 minutes
-  await cacheService.set(cacheKey, entries, 60);
-
-  return entries;
 }
 
 /**

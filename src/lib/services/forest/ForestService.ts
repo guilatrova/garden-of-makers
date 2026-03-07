@@ -1,55 +1,72 @@
 /**
  * ForestService
- * Reads forest data from cache. Data is populated by SyncService.
- * Falls back to a single-page fetch from TrustMRR if cache is empty.
+ * Reads forest data from Supabase startups table.
+ * Falls back to single-page TrustMRR fetch if Supabase is empty.
  */
 
 import { TrustMRRProvider } from "@/lib/providers/trustmrr";
 import { TreeService } from "@/lib/services/tree";
-import { CacheService } from "@/lib/services/cache";
+import { createServiceClient } from "@/lib/utils/supabase/server";
+import { mapRowToStartup, StartupRow } from "@/lib/utils/supabase/mappers";
 import { ForestLayoutEngine } from "./ForestLayoutEngine";
 import { ForestData, ForestServiceOptions } from "./types";
-
-const CACHE_KEY_FOREST = "forest_all";
 
 export class ForestService {
   private trustMRRProvider: TrustMRRProvider;
   private treeService: TreeService;
   private layoutEngine: ForestLayoutEngine;
-  private cache: CacheService;
 
   constructor() {
     this.trustMRRProvider = new TrustMRRProvider();
     this.treeService = new TreeService();
     this.layoutEngine = new ForestLayoutEngine();
-    this.cache = new CacheService();
   }
 
-  /**
-   * Get forest data. Reads from cache first.
-   * If cache is empty, does a single-page fetch as bootstrap.
-   */
   async buildForest(options: ForestServiceOptions = {}): Promise<ForestData> {
-    // Try cache first
-    const cached = await this.cache.get<ForestData>(CACHE_KEY_FOREST);
-    if (cached && cached.trees.length > 0) {
-      // Apply category filter on cached data if needed
+    // Try Supabase first
+    try {
+      const supabase = createServiceClient();
+
+      let query = supabase
+        .from("startups")
+        .select("*")
+        .order("revenue_last_30d_cents", { ascending: false });
+
       if (options.category) {
+        query = query.ilike("category", options.category);
+      }
+
+      const { data: rows, error } = await query;
+
+      if (!error && rows && rows.length > 0) {
+        const typedRows = rows as unknown as StartupRow[];
+        const trees = typedRows.map((row) =>
+          this.treeService.mapToTreeData(mapRowToStartup(row))
+        );
+
+        const positionedTrees = this.layoutEngine.positionTrees(trees);
+        const categories = [
+          ...new Set(typedRows.map((r) => r.category).filter(Boolean)),
+        ].sort() as string[];
+
+        const latestFetch = typedRows.reduce(
+          (latest, r) =>
+            r._last_fetch_at > latest ? r._last_fetch_at : latest,
+          typedRows[0]._last_fetch_at
+        );
+
         return {
-          ...cached,
-          trees: cached.trees.filter(
-            (t) => t.category?.toLowerCase() === options.category?.toLowerCase()
-          ),
-          totalStartups: cached.trees.filter(
-            (t) => t.category?.toLowerCase() === options.category?.toLowerCase()
-          ).length,
+          trees: positionedTrees,
+          totalStartups: rows.length,
+          categories,
+          lastSyncedAt: latestFetch,
         };
       }
-      return cached;
+    } catch {
+      // Supabase not configured or error — fall through
     }
 
-    // Cache empty — bootstrap with a single page fetch
-    // (SyncService will fill the full dataset on next run)
+    // Fallback: bootstrap with single page from TrustMRR
     try {
       const { response } = await this.trustMRRProvider.listStartups({
         page: 1,
@@ -59,26 +76,19 @@ export class ForestService {
       });
 
       const categories = new Set<string>();
-      for (const startup of response.data) {
-        if (startup.category) {
-          categories.add(startup.category);
-        }
+      for (const s of response.data) {
+        if (s.category) categories.add(s.category);
       }
 
       const trees = response.data.map((s) => this.treeService.mapToTreeData(s));
       const positionedTrees = this.layoutEngine.positionTrees(trees);
 
-      const forestData: ForestData = {
+      return {
         trees: positionedTrees,
         totalStartups: response.data.length,
         categories: Array.from(categories).sort(),
         lastSyncedAt: new Date().toISOString(),
       };
-
-      // Cache bootstrap data (short TTL — sync will replace it)
-      await this.cache.set(CACHE_KEY_FOREST, forestData, 30);
-
-      return forestData;
     } catch (error) {
       console.error("ForestService bootstrap fetch failed:", error);
       return {

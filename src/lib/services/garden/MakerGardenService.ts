@@ -1,15 +1,16 @@
 /**
  * MakerGardenService
- * Fetches all products for a maker and builds their personal garden
+ * Builds a maker's garden from Supabase (x_handle indexed query).
+ * Falls back to TrustMRR API if Supabase has no results.
  */
 
 import { TrustMRRProvider } from "@/lib/providers/trustmrr";
 import { TreeService } from "@/lib/services/tree";
 import { TreeData } from "@/lib/services/tree/types";
 import { ForestLayoutEngine } from "@/lib/services/forest/ForestLayoutEngine";
-import { ForestData } from "@/lib/services/forest/types";
 import { PositionedTree } from "@/lib/services/forest/types";
-import { CacheService } from "@/lib/services/cache";
+import { createServiceClient } from "@/lib/utils/supabase/server";
+import { mapRowToStartup, StartupRow } from "@/lib/utils/supabase/mappers";
 import {
   MakerGarden,
   MakerGardenServiceConfig,
@@ -38,42 +39,57 @@ export class MakerGardenService {
     };
   }
 
-  /**
-   * Build a maker's garden from their xHandle
-   * Fetches all products and positions them in a personal garden layout
-   */
   async buildGarden(xHandle: string): Promise<MakerGarden | null> {
-    // Normalize the handle (remove @ if present)
     const normalizedHandle = xHandle.replace("@", "");
 
-    // Fetch all startups for this maker
     const allProducts = await this.fetchAllProductsForMaker(normalizedHandle);
 
     if (allProducts.length === 0) {
       return null;
     }
 
-    // Get maker info from the first product's cofounders
-    const firstProduct = allProducts[0];
+    // Get maker info
     let xName: string | null = null;
     let xFollowerCount: number | null = null;
 
     try {
-      // Fetch detail for first product to get cofounders data
-      const { response } = await this.trustMRRProvider.getStartup(firstProduct.slug);
-      const detail = response.data;
-      xFollowerCount = detail.xFollowerCount;
+      // Try Supabase first for cofounder data
+      const supabase = createServiceClient();
+      const firstProduct = allProducts[0];
 
-      const makerInfo = extractMakerInfo(xHandle, detail.cofounders);
-      xName = makerInfo.xName;
+      const { data: detail } = await supabase
+        .from("startup_details")
+        .select("x_follower_count")
+        .eq("startup_id", firstProduct.slug)
+        .single();
+
+      if (detail) {
+        const d = detail as unknown as { x_follower_count: number | null };
+        xFollowerCount = d.x_follower_count;
+      }
+
+      const { data: cofounders } = await supabase
+        .from("startup_cofounders")
+        .select("x_handle, x_name")
+        .ilike("x_handle", normalizedHandle);
+
+      if (cofounders && cofounders.length > 0) {
+        const c = cofounders as unknown as Array<{ x_handle: string; x_name: string | null }>;
+        xName = c[0].x_name;
+      }
     } catch {
-      // If detail fetch fails, continue with null values
+      // If Supabase fails, try API for detail
+      try {
+        const { response } = await this.trustMRRProvider.getStartup(allProducts[0].slug);
+        xFollowerCount = response.data.xFollowerCount;
+        const makerInfo = extractMakerInfo(xHandle, response.data.cofounders);
+        xName = makerInfo.xName;
+      } catch {
+        // Continue with null values
+      }
     }
 
-    // Position trees in a small, centered garden layout
     const positionedProducts = this.positionProductsInGarden(allProducts);
-
-    // Calculate totals
     const totalMRR = calculateTotalMRR(positionedProducts);
     const totalCustomers = calculateTotalCustomers(positionedProducts);
 
@@ -90,64 +106,58 @@ export class MakerGardenService {
   }
 
   /**
-   * Fetch all products (startups) for a maker by xHandle.
-   * First tries the synced forest cache (avoids TrustMRR API call).
-   * Falls back to direct API call if cache miss.
+   * Fetch products for a maker. Queries Supabase by x_handle (indexed).
+   * Falls back to TrustMRR API if Supabase returns nothing.
    */
   private async fetchAllProductsForMaker(xHandle: string): Promise<TreeData[]> {
-    // Try cache first
-    const cacheService = new CacheService();
-    const cachedForest = await cacheService.get<ForestData>("forest_all");
+    try {
+      const supabase = createServiceClient();
 
-    if (cachedForest && cachedForest.trees.length > 0) {
-      const fromCache = cachedForest.trees.filter(
-        (t) => t.xHandle?.toLowerCase() === xHandle.toLowerCase()
-      );
-      if (fromCache.length > 0) {
-        return fromCache;
+      const { data: rows, error } = await supabase
+        .from("startups")
+        .select("*")
+        .ilike("x_handle", xHandle)
+        .order("revenue_last_30d_cents", { ascending: false });
+
+      if (!error && rows && rows.length > 0) {
+        const typedRows = rows as unknown as StartupRow[];
+        return typedRows.map((row) =>
+          this.treeService.mapToTreeData(mapRowToStartup(row))
+        );
       }
+    } catch {
+      // Supabase not available, fall through to API
     }
 
-    // Cache miss — call TrustMRR directly
+    // Fallback: call TrustMRR directly
     const allProducts: TreeData[] = [];
     let page = 1;
-    const limit = 50;
     let hasMore = true;
 
     while (hasMore && page <= 10) {
       const { response } = await this.trustMRRProvider.listStartups({
         xHandle,
         page,
-        limit,
+        limit: 50,
       });
 
-      const mappedProducts = this.treeService.mapManyToTreeData(response.data);
-      allProducts.push(...mappedProducts);
-
+      allProducts.push(...this.treeService.mapManyToTreeData(response.data));
       hasMore = response.meta.hasMore;
       page++;
 
-      if (allProducts.length >= 500) {
-        break;
-      }
+      if (allProducts.length >= 500) break;
     }
 
     return allProducts;
   }
 
-  /**
-   * Position products in a small, intimate garden layout
-   * Uses a smaller zone radius than the full forest
-   */
   private positionProductsInGarden(products: TreeData[]): PositionedTree[] {
-    // Sort by MRR descending so largest trees are centered
     const sortedProducts = [...products].sort((a, b) => b.mrrCents - a.mrrCents);
 
-    // Use smaller zone radius for intimate garden feel
     const layoutEngine = new ForestLayoutEngine({
       zoneRadius: this.config.defaultZoneRadius ?? 15,
       spacingMultiplier: 2.0,
-      centerSpecialTrees: false, // Don't pull ancient/world trees to center in garden
+      centerSpecialTrees: false,
     });
 
     return layoutEngine.positionTrees(sortedProducts);
