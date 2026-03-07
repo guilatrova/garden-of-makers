@@ -394,6 +394,7 @@ function FlightMode({ onExit }: { onExit: () => void }) {
 
     let speedMult = 1;
     if (k["ShiftLeft"] || k["ShiftRight"]) speedMult = 2;
+    if (k["Space"]) speedMult = 0;
 
     const actualSpeed = FLY_SPEED * speedMult;
     pos.current.y += altInput * CLIMB_RATE * dt;
