@@ -120,6 +120,9 @@
     "visitWebsite": "Visit Website",
     "viewOnX": "View on X",
     "viewGarden": "View @{handle}'s Garden →",
-    "close": "Close"
+    "close": "Close",
+    "makerProducts": "Product {current} of {total} by this maker",
+    "nextProduct": "Next Product",
+    "prevProduct": "Prev Product"
   }
 }

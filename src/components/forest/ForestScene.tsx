@@ -21,6 +21,7 @@ export interface ForestSceneProps {
   flyMode?: boolean;
   onExitFly?: () => void;
   holdGrowth?: boolean;
+  externalFocusSlug?: string | null;
 }
 
 /**
@@ -90,11 +91,11 @@ function IntroFlyover({
 
   const { posCurve, lookCurve } = useMemo(() => {
     const posPoints = [
-      new THREE.Vector3(-400, 200, 400),   // WP0: Far, high, left
-      new THREE.Vector3(-200, 160, 300),   // WP1: Descending
-      new THREE.Vector3(0, 120, 200),      // WP2: Approaching center
-      new THREE.Vector3(tx + 100, 100, tz + 150), // WP3: Near target
-      new THREE.Vector3(tx + 80, 80, tz + 200),   // WP4: Final orbit position
+      new THREE.Vector3(-250, 150, 250),   // WP0: Closer start
+      new THREE.Vector3(-120, 110, 180),   // WP1: Descending
+      new THREE.Vector3(0, 80, 120),       // WP2: Approaching center
+      new THREE.Vector3(tx + 60, 60, tz + 90),  // WP3: Near target
+      new THREE.Vector3(tx + 50, 50, tz + 120), // WP4: Final orbit position
     ];
     const lookPoints = [
       new THREE.Vector3(0, 30, 0),          // WP0: City center
@@ -111,7 +112,7 @@ function IntroFlyover({
   }, [tx, tz, ty]);
 
   useEffect(() => {
-    camera.position.set(-400, 200, 400);
+    camera.position.set(-250, 150, 250);
     camera.lookAt(0, 30, 0);
   }, [camera]);
 
@@ -539,7 +540,7 @@ function OrbitScene({
         enableDamping
         dampingFactor={0.05}
         minDistance={10}
-        maxDistance={1000}
+        maxDistance={600}
         maxPolarAngle={Math.PI / 2.1}
         autoRotate
         autoRotateSpeed={0.15}
@@ -608,9 +609,12 @@ function GrowingTree({
 
 // ─── Main Component ─────────────────────────────────────────
 
-export function ForestScene({ trees, onTreeClick, flyMode, onExitFly, holdGrowth = false }: ForestSceneProps) {
+export function ForestScene({ trees, onTreeClick, flyMode, onExitFly, holdGrowth = false, externalFocusSlug }: ForestSceneProps) {
   const [selectedTreeSlug, setSelectedTreeSlug] = useState<string | null>(null);
   const [introMode, setIntroMode] = useState(true);
+
+  // Merge external focus (from search) with internal selection
+  const activeFocusSlug = externalFocusSlug ?? selectedTreeSlug;
 
   // Track whether holdGrowth was ever true (to enable growth animation)
   const wasHeld = useRef(holdGrowth);
@@ -646,6 +650,13 @@ export function ForestScene({ trees, onTreeClick, flyMode, onExitFly, holdGrowth
     if (flyMode) setSelectedTreeSlug(null);
   }, [flyMode]);
 
+  // When external focus arrives, skip intro and enter orbit
+  useEffect(() => {
+    if (externalFocusSlug) {
+      setIntroMode(false);
+    }
+  }, [externalFocusSlug]);
+
   const handleIntroEnd = useCallback(() => {
     setIntroMode(false);
   }, []);
@@ -669,7 +680,7 @@ export function ForestScene({ trees, onTreeClick, flyMode, onExitFly, holdGrowth
     <Canvas
       shadows
       camera={{
-        position: [-400, 200, 400],
+        position: [-250, 150, 250],
         fov: 60,
         near: 0.1,
         far: 5000,
@@ -698,12 +709,12 @@ export function ForestScene({ trees, onTreeClick, flyMode, onExitFly, holdGrowth
         ) : flyMode && !introMode ? (
           <FlightMode onExit={onExitFly ?? (() => {})} />
         ) : !introMode ? (
-          <OrbitScene trees={trees} focusedTreeSlug={selectedTreeSlug} />
+          <OrbitScene trees={trees} focusedTreeSlug={activeFocusSlug} />
         ) : null}
 
         {/* Trees */}
         {trees.map((tree, i) => {
-          const isSelected = selectedTreeSlug === tree.slug;
+          const isSelected = activeFocusSlug === tree.slug;
           const tc = getTierConfig(tree.tier);
           const h = BASE_TREE_HEIGHT * tc.relativeHeight;
           return (

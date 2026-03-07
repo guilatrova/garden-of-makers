@@ -120,6 +120,9 @@
     "visitWebsite": "Visitar Site",
     "viewOnX": "Ver no X",
     "viewGarden": "Ver Jardim de @{handle} →",
-    "close": "Fechar"
+    "close": "Fechar",
+    "makerProducts": "Produto {current} de {total} deste maker",
+    "nextProduct": "Próximo",
+    "prevProduct": "Anterior"
   }
 }

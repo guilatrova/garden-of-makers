@@ -10,11 +10,15 @@ import { getCategoryDisplayName, getCategoryColor } from "@/lib/constants/catego
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect } from "react";
-import { X, ExternalLink, Twitter } from "lucide-react";
+import { X, ExternalLink, Twitter, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface StartupDrawerProps {
   startup: TreeData | null;
   onClose: () => void;
+  siblingCount?: number;
+  siblingIndex?: number;
+  onNextProduct?: () => void;
+  onPrevProduct?: () => void;
 }
 
 /**
@@ -129,7 +133,7 @@ function FruitBreakdown({ fruits }: { fruits: TreeData["fruits"] }) {
   );
 }
 
-export function StartupDrawer({ startup, onClose }: StartupDrawerProps) {
+export function StartupDrawer({ startup, onClose, siblingCount = 0, siblingIndex = 0, onNextProduct, onPrevProduct }: StartupDrawerProps) {
   const t = useTranslations("drawer");
 
   useEffect(() => {
@@ -288,6 +292,31 @@ export function StartupDrawer({ startup, onClose }: StartupDrawerProps) {
                 </>
               )}
             </div>
+
+            {/* Sibling products navigation */}
+            {siblingCount > 1 && (
+              <div className="rounded-lg border border-green-800/50 bg-green-900/20 p-4">
+                <div className="mb-2 text-center text-xs text-green-600">
+                  {t("makerProducts", { current: siblingIndex + 1, total: siblingCount })}
+                </div>
+                <div className="flex items-center justify-center gap-3">
+                  <button
+                    onClick={onPrevProduct}
+                    className="flex items-center gap-1 rounded-lg border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-gray-300 transition-colors hover:border-green-500 hover:text-white"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    {t("prevProduct")}
+                  </button>
+                  <button
+                    onClick={onNextProduct}
+                    className="flex items-center gap-1 rounded-lg border border-green-600 bg-green-700 px-3 py-2 text-sm text-white transition-colors hover:bg-green-600"
+                  >
+                    {t("nextProduct")}
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
