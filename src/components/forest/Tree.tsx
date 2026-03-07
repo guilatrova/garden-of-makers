@@ -200,8 +200,10 @@ export function Tree({ data, onClick }: TreeProps) {
   }
 
   // Standard tree with trunk and canopy
-  const trunkY = height * 0.2; // Trunk sits at 20% of height
-  const canopyY = height * 0.6; // Canopy center at 60% of height
+  const trunkHeight = height * 0.6;
+  const trunkY = trunkHeight / 2;
+  const trunkTop = trunkHeight;
+  const canopyY = trunkTop + tierConfig.canopyRadius * 0.5;
 
   return (
     <group ref={groupRef} onClick={handleClick}>

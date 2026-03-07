@@ -79,12 +79,14 @@ function TreeBillboard({ tier, height }: { tier: import("@/lib/services/tree/typ
 function SimplifiedTree({ data }: { data: TreeData }) {
   const tierConfig = getTierConfig(data.tier);
   const height = BASE_TREE_HEIGHT * tierConfig.relativeHeight;
-  
+
   const trunkColor = TRUNK_COLORS[data.tier];
   const canopyColor = CANOPY_COLORS[data.tier];
 
-  const trunkY = height * 0.2;
-  const canopyY = height * 0.6;
+  const trunkHeight = height * 0.6;
+  const trunkY = trunkHeight / 2;
+  const trunkTop = trunkHeight;
+  const canopyY = trunkTop + tierConfig.canopyRadius * 0.5;
 
   // Don't render for seed/sprout/shrub
   if (data.tier === "seed" || data.tier === "sprout" || data.tier === "shrub") {
@@ -100,13 +102,13 @@ function SimplifiedTree({ data }: { data: TreeData }) {
     <group>
       {/* Simple trunk */}
       <mesh position={[0, trunkY, 0]}>
-        <cylinderGeometry 
+        <cylinderGeometry
           args={[
             tierConfig.trunkRadius * 0.7,
             tierConfig.trunkRadius,
-            height * 0.4,
+            trunkHeight,
             5
-          ]} 
+          ]}
         />
         <meshStandardMaterial color={trunkColor} flatShading />
       </mesh>
@@ -138,8 +140,10 @@ function FullTree({
   const trunkColor = TRUNK_COLORS[data.tier];
   const canopyColor = CANOPY_COLORS[data.tier];
 
-  const trunkY = height * 0.2;
-  const canopyY = height * 0.6;
+  const trunkHeight = height * 0.6;
+  const trunkY = trunkHeight / 2;
+  const trunkTop = trunkHeight;
+  const canopyY = trunkTop + tierConfig.canopyRadius * 0.5;
 
   // Generate deterministic leaf positions
   const leafPositions = useMemo(() => {
@@ -212,7 +216,7 @@ function FullTree({
           args={[
             tierConfig.trunkRadius * 0.7,
             tierConfig.trunkRadius,
-            height * 0.4,
+            trunkHeight,
             data.tier === "world" || data.tier === "ancient" ? 8 : 6,
           ]}
         />
@@ -242,7 +246,7 @@ function FullTree({
         <TreeLabel
           data={data}
           visible={true}
-          position={[0, height + 2, 0]}
+          position={[0, canopyY + tierConfig.canopyRadius + 2, 0]}
         />
       )}
 
