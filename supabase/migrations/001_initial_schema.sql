@@ -25,17 +25,17 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.forest_cache ENABLE ROW LEVEL SECURITY;
 
 -- Profiles: public read, owner write
-CREATE POLICY IF NOT EXISTS "Profiles are publicly readable"
+CREATE POLICY "Profiles are publicly readable"
   ON public.profiles FOR SELECT USING (true);
 
-CREATE POLICY IF NOT EXISTS "Users can update own profile"
+CREATE POLICY "Users can update own profile"
   ON public.profiles FOR UPDATE USING (auth.uid() = id);
 
-CREATE POLICY IF NOT EXISTS "Users can insert own profile"
+CREATE POLICY "Users can insert own profile"
   ON public.profiles FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- Cache: readable by all, writable only via service role
-CREATE POLICY IF NOT EXISTS "Cache readable by all"
+CREATE POLICY "Cache readable by all"
   ON public.forest_cache FOR SELECT USING (true);
 
 -- Note: INSERT/UPDATE/DELETE on cache should be done via service role key
@@ -55,7 +55,7 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER IF NOT EXISTS update_profiles_updated_at
+CREATE TRIGGER update_profiles_updated_at
   BEFORE UPDATE ON public.profiles
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at_column();

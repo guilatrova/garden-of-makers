@@ -2,17 +2,13 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { Database } from "./database.types";
 
-/**
- * Server Supabase client
- * For use in server components and API routes
- * Respects RLS policies based on user's session
- */
-export async function createClient() {
-  const cookieStore = await cookies();
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_DEFAULT_KEY;
 
+export const createClient = (cookieStore: Awaited<ReturnType<typeof cookies>>) => {
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    supabaseUrl!,
+    supabaseKey!,
     {
       cookies: {
         getAll() {
@@ -31,7 +27,7 @@ export async function createClient() {
       },
     }
   );
-}
+};
 
 /**
  * Service role client for admin operations
@@ -40,7 +36,7 @@ export async function createClient() {
  */
 export function createServiceClient() {
   return createServerClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    supabaseUrl!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!,
     {
       cookies: {
