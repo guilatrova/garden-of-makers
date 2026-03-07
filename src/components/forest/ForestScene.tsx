@@ -96,10 +96,10 @@ export function ForestScene({ trees, onTreeClick }: ForestSceneProps) {
     <Canvas
       shadows
       camera={{
-        position: [0, 30, 80],
+        position: [0, 50, 150],
         fov: 60,
         near: 0.1,
-        far: 1000,
+        far: 5000,
       }}
       gl={{
         antialias: true,

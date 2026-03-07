@@ -23,8 +23,8 @@ interface UseFlightControlsReturn {
   isPointerLocked: boolean;
 }
 
-const BASE_SPEED = 30; // units per second
-const BOOST_SPEED = 90; // units per second when holding E
+const BASE_SPEED = 60; // units per second - increased for larger forest
+const BOOST_SPEED = 180; // units per second when holding E - increased for larger forest
 
 export function useFlightControls(): UseFlightControlsReturn {
   const [keys, setKeys] = useState<KeysState>({

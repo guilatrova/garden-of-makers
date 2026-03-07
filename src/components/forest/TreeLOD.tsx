@@ -28,10 +28,10 @@ export interface TreeLODProps {
 
 type LODLevel = "near" | "mid" | "far";
 
-// Distance thresholds for LOD levels
+// Distance thresholds for LOD levels - scaled for larger trees
 const LOD_THRESHOLDS = {
-  near: 50,
-  mid: 200,
+  near: 100,
+  mid: 500,
 };
 
 // Frame skip for distance calculation (throttle to every 10 frames)
