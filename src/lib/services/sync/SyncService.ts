@@ -63,6 +63,8 @@ export class SyncService {
     let currentPage = lastPage + 1;
     let syncComplete = false;
 
+    console.log(`SyncService: Starting sync from page ${currentPage} (totalPages: ${totalPages ?? "unknown"})`);
+
     try {
       for (let i = 0; i < PAGES_PER_RUN; i++) {
         const { response, rateLimit } = await this.provider.listStartups({
@@ -74,12 +76,14 @@ export class SyncService {
         // Calculate total pages on first fetch
         if (totalPages === null) {
           totalPages = Math.ceil(response.meta.total / PAGE_SIZE);
+          console.log(`SyncService: Total startups: ${response.meta.total}, pages: ${totalPages}`);
         }
 
         // Upsert startups to Supabase
         const upserted = await this.upsertStartups(supabase, response.data);
         startupsUpserted += upserted;
         pagesProcessed++;
+        console.log(`SyncService: Page ${currentPage}/${totalPages} — ${upserted} startups upserted (rate limit remaining: ${rateLimit.remaining})`);
 
         if (!response.meta.hasMore) {
           syncComplete = true;
@@ -122,6 +126,9 @@ export class SyncService {
       onConflict: "sync_key",
     });
 
+    const duration = Date.now() - startTime;
+    console.log(`SyncService: Finished — ${pagesProcessed} pages, ${startupsUpserted} startups upserted, ${syncComplete ? "complete" : "partial"} (${duration}ms)`);
+
     return {
       status: syncComplete ? "complete" : "partial",
       pagesProcessed,
@@ -129,7 +136,7 @@ export class SyncService {
       totalPages,
       currentPage,
       isComplete: syncComplete,
-      duration: Date.now() - startTime,
+      duration,
     };
   }
 
