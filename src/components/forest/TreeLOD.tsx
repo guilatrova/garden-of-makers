@@ -283,6 +283,12 @@ export function TreeLOD({ data, onClick, showLabel }: TreeLODProps) {
   const [lodLevel, setLodLevel] = useState<LODLevel>("near");
   const { camera } = useThree();
 
+  // Scale LOD thresholds by tree height so small plants stay as billboards longer
+  const lodScale = useMemo(() => {
+    const h = BASE_TREE_HEIGHT * getTierConfig(data.tier).relativeHeight;
+    return Math.min(1, Math.max(0.15, h / 40));
+  }, [data.tier]);
+
   // Calculate distance and update LOD (throttled)
   useFrame(({ clock }) => {
     // Only update every FRAME_SKIP frames
@@ -294,10 +300,13 @@ export function TreeLOD({ data, onClick, showLabel }: TreeLODProps) {
     const treePosition = groupRef.current.getWorldPosition(_worldPos);
     const distance = treePosition.distanceTo(camera.position);
 
+    const nearThreshold = LOD_THRESHOLDS.near * lodScale;
+    const midThreshold = LOD_THRESHOLDS.mid * lodScale;
+
     let newLevel: LODLevel;
-    if (distance < LOD_THRESHOLDS.near) {
+    if (distance < nearThreshold) {
       newLevel = "near";
-    } else if (distance < LOD_THRESHOLDS.mid) {
+    } else if (distance < midThreshold) {
       newLevel = "mid";
     } else {
       newLevel = "far";
