@@ -2,7 +2,7 @@
  * Category to Biome Zone mapping
  * Based on PROJECT.md specification
  * 
- * Maps TrustMRR categories to forest biome zones for 3D layout
+ * Maps TrustMRR categories to forest biome zones for UI filtering
  */
 
 export type BiomeZone =
@@ -60,27 +60,6 @@ export const CATEGORY_MAPPINGS: CategoryMapping[] = [
     color: "#8BC34A",
   },
 ];
-
-/**
- * Zone center positions in 3D world coordinates
- * Used by ForestLayoutEngine for positioning
- */
-export const ZONE_CENTERS: Record<BiomeZone, { x: number; z: number }> = {
-  northeast: { x: 100, z: -100 },
-  central: { x: 0, z: 0 },
-  east: { x: 150, z: 0 },
-  south: { x: 0, z: 150 },
-  northwest: { x: -100, z: -100 },
-  west: { x: -150, z: 0 },
-  southeast: { x: 100, z: 100 },
-  southwest: { x: -100, z: 100 },
-  center: { x: 0, z: 0 }, // Ancient/World trees clustered at true center
-};
-
-/**
- * Zone radius - how far trees spread from zone center
- */
-export const ZONE_RADIUS = 80;
 
 /**
  * Get biome zone for a category

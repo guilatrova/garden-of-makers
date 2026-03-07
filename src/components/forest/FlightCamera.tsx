@@ -21,7 +21,7 @@ export function FlightCamera() {
 
   // Refs for smooth interpolation
   const velocityRef = useRef(new THREE.Vector3());
-  const positionRef = useRef(new THREE.Vector3(0, 30, 80));
+  const positionRef = useRef(new THREE.Vector3(0, 80, 200));
   const rotationRef = useRef({ yaw: 0, pitch: 0 });
 
   // Initialize camera position
