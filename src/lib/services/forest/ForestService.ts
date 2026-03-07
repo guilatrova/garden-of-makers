@@ -1,98 +1,94 @@
 /**
  * ForestService
- * Orchestrates fetching data from TrustMRR and building the forest
+ * Reads forest data from cache. Data is populated by SyncService.
+ * Falls back to a single-page fetch from TrustMRR if cache is empty.
  */
 
-import { TrustMRRProvider, TrustMRRStartup } from "@/lib/providers/trustmrr";
+import { TrustMRRProvider } from "@/lib/providers/trustmrr";
 import { TreeService } from "@/lib/services/tree";
-import { TreeData } from "@/lib/services/tree/types";
+import { CacheService } from "@/lib/services/cache";
 import { ForestLayoutEngine } from "./ForestLayoutEngine";
 import { ForestData, ForestServiceOptions } from "./types";
+
+const CACHE_KEY_FOREST = "forest_all";
 
 export class ForestService {
   private trustMRRProvider: TrustMRRProvider;
   private treeService: TreeService;
   private layoutEngine: ForestLayoutEngine;
+  private cache: CacheService;
 
   constructor() {
     this.trustMRRProvider = new TrustMRRProvider();
     this.treeService = new TreeService();
     this.layoutEngine = new ForestLayoutEngine();
+    this.cache = new CacheService();
   }
 
   /**
-   * Build forest data by fetching all startups from TrustMRR
-   * Paginates through all pages and positions trees
+   * Get forest data. Reads from cache first.
+   * If cache is empty, does a single-page fetch as bootstrap.
    */
   async buildForest(options: ForestServiceOptions = {}): Promise<ForestData> {
-    const startups: TrustMRRStartup[] = [];
-    const categories = new Set<string>();
-    let page = 1;
-    const limit = 50;
-    let hasMore = true;
-
-    try {
-      // Fetch all pages from TrustMRR
-      while (hasMore) {
-        const { response, rateLimit } = await this.trustMRRProvider.listStartups({
-          page,
-          limit,
-          sort: "revenue-desc",
-          category: options.category,
-        });
-
-        startups.push(...response.data);
-
-        // Collect unique categories
-        for (const startup of response.data) {
-          if (startup.category) {
-            categories.add(startup.category);
-          }
-        }
-
-        hasMore = response.meta.hasMore;
-        page++;
-
-        // Rate limit awareness - stop if we're running low
-        if (rateLimit.remaining < 5) {
-          console.warn(
-            `TrustMRR rate limit low (${rateLimit.remaining} remaining). Stopping pagination.`
-          );
-          break;
-        }
-
-        // Safety limit - don't exceed 20 pages (1000 startups)
-        if (page > 20) {
-          console.warn("Reached maximum page limit (20). Stopping pagination.");
-          break;
-        }
+    // Try cache first
+    const cached = await this.cache.get<ForestData>(CACHE_KEY_FOREST);
+    if (cached && cached.trees.length > 0) {
+      // Apply category filter on cached data if needed
+      if (options.category) {
+        return {
+          ...cached,
+          trees: cached.trees.filter(
+            (t) => t.category?.toLowerCase() === options.category?.toLowerCase()
+          ),
+          totalStartups: cached.trees.filter(
+            (t) => t.category?.toLowerCase() === options.category?.toLowerCase()
+          ).length,
+        };
       }
-    } catch (error) {
-      // Handle rate limit errors
-      if (error instanceof Error && error.message.includes("rate limit")) {
-        console.warn("TrustMRR rate limit exceeded. Returning partial data.");
-      } else {
-        console.error("Error fetching from TrustMRR:", error);
-        throw error;
-      }
+      return cached;
     }
 
-    // Map startups to TreeData (without positions initially)
-    const treesWithoutPositions: TreeData[] = startups.map((startup) =>
-      this.treeService.mapToTreeData(startup)
-    );
+    // Cache empty — bootstrap with a single page fetch
+    // (SyncService will fill the full dataset on next run)
+    try {
+      const { response } = await this.trustMRRProvider.listStartups({
+        page: 1,
+        limit: 50,
+        sort: "revenue-desc",
+        category: options.category,
+      });
 
-    // Position trees using layout engine
-    const positionedTrees = this.layoutEngine.positionTrees(treesWithoutPositions);
+      const categories = new Set<string>();
+      for (const startup of response.data) {
+        if (startup.category) {
+          categories.add(startup.category);
+        }
+      }
 
-    return {
-      trees: positionedTrees,
-      totalStartups: startups.length,
-      categories: Array.from(categories).sort(),
-      lastSyncedAt: new Date().toISOString(),
-    };
+      const trees = response.data.map((s) => this.treeService.mapToTreeData(s));
+      const positionedTrees = this.layoutEngine.positionTrees(trees);
+
+      const forestData: ForestData = {
+        trees: positionedTrees,
+        totalStartups: response.data.length,
+        categories: Array.from(categories).sort(),
+        lastSyncedAt: new Date().toISOString(),
+      };
+
+      // Cache bootstrap data (short TTL — sync will replace it)
+      await this.cache.set(CACHE_KEY_FOREST, forestData, 30);
+
+      return forestData;
+    } catch (error) {
+      console.error("ForestService bootstrap fetch failed:", error);
+      return {
+        trees: [],
+        totalStartups: 0,
+        categories: [],
+        lastSyncedAt: new Date().toISOString(),
+      };
+    }
   }
 }
 
-// Singleton instance
 export const forestService = new ForestService();

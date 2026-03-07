@@ -1,83 +1,60 @@
 import { NextResponse } from "next/server";
-import { ForestService } from "@/lib/services/forest";
 import { CacheService } from "@/lib/services/cache";
+import { ForestData } from "@/lib/services/forest/types";
 
 // Revalidate every hour (ISR)
 export const revalidate = 3600;
 
+const CACHE_KEY_FOREST = "forest_all";
+
 /**
  * GET /api/forest
- * Returns full forest data with tree positions
- * Supports optional ?category= filter
- * Uses caching with stale-while-revalidate pattern
+ * Returns forest data from cache.
+ * Data is populated by POST /api/sync — this route never calls TrustMRR directly.
+ * If cache is empty, returns empty forest with a hint to trigger sync.
  */
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    // Parse optional category filter
-    const { searchParams } = new URL(request.url);
-    const category = searchParams.get("category") ?? undefined;
-
-    // Build cache key
-    const cacheKey = category ? `forest_${category}` : "forest_all";
-
     const cacheService = new CacheService();
-    const forestService = new ForestService();
 
-    // Try to get from cache
-    const cached = await cacheService.get<{
-      trees: unknown[];
-      totalStartups: number;
-      categories: string[];
-      lastSyncedAt: string;
-    }>(cacheKey);
+    // Always read from cache
+    const cached = await cacheService.get<ForestData>(CACHE_KEY_FOREST);
 
     if (cached) {
-      // Check if cache is still fresh (less than 60 minutes old)
-      const cacheAge = Date.now() - new Date(cached.lastSyncedAt).getTime();
-      const maxAge = 60 * 60 * 1000; // 60 minutes
-
-      if (cacheAge < maxAge) {
-        // Cache hit and fresh
-        return NextResponse.json(cached);
-      }
-
-      // Cache exists but is stale - return it and refresh in background
-      // (In a real implementation, you might want to trigger a background refresh)
-      console.log(`Returning stale cache for ${cacheKey}, refreshing...`);
+      return NextResponse.json(cached, {
+        headers: {
+          "Cache-Control": "public, s-maxage=3600, stale-while-revalidate=7200",
+        },
+      });
     }
 
-    // Cache miss or stale - fetch fresh data
-    try {
-      const forestData = await forestService.buildForest({ category });
-
-      // Store in cache (60 minute TTL)
-      await cacheService.set(cacheKey, forestData, 60);
-
-      return NextResponse.json(forestData);
-    } catch (error) {
-      // If fetch fails but we have stale cache, return it
-      if (cached) {
-        console.warn("TrustMRR fetch failed, returning stale cache:", error);
-        return NextResponse.json(cached);
+    // Cache empty — no sync has run yet
+    return NextResponse.json(
+      {
+        trees: [],
+        totalStartups: 0,
+        categories: [],
+        lastSyncedAt: null,
+        _hint: "Cache is empty. Trigger a sync via POST /api/sync",
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "public, s-maxage=60",
+        },
       }
-
-      // No cache and fetch failed
-      throw error;
-    }
+    );
   } catch (error) {
     console.error("Forest API error:", error);
-
-    const errorMessage =
-      error instanceof Error ? error.message : "Unknown error";
 
     return NextResponse.json(
       {
         error: "Failed to fetch forest data",
-        message: errorMessage,
+        message: error instanceof Error ? error.message : "Unknown error",
         trees: [],
         totalStartups: 0,
         categories: [],
-        lastSyncedAt: new Date().toISOString(),
+        lastSyncedAt: null,
       },
       { status: 500 }
     );

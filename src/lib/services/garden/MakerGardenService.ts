@@ -7,7 +7,9 @@ import { TrustMRRProvider } from "@/lib/providers/trustmrr";
 import { TreeService } from "@/lib/services/tree";
 import { TreeData } from "@/lib/services/tree/types";
 import { ForestLayoutEngine } from "@/lib/services/forest/ForestLayoutEngine";
+import { ForestData } from "@/lib/services/forest/types";
 import { PositionedTree } from "@/lib/services/forest/types";
+import { CacheService } from "@/lib/services/cache";
 import {
   MakerGarden,
   MakerGardenServiceConfig,
@@ -88,10 +90,25 @@ export class MakerGardenService {
   }
 
   /**
-   * Fetch all products (startups) for a maker by xHandle
-   * Handles pagination if maker has many products
+   * Fetch all products (startups) for a maker by xHandle.
+   * First tries the synced forest cache (avoids TrustMRR API call).
+   * Falls back to direct API call if cache miss.
    */
   private async fetchAllProductsForMaker(xHandle: string): Promise<TreeData[]> {
+    // Try cache first
+    const cacheService = new CacheService();
+    const cachedForest = await cacheService.get<ForestData>("forest_all");
+
+    if (cachedForest && cachedForest.trees.length > 0) {
+      const fromCache = cachedForest.trees.filter(
+        (t) => t.xHandle?.toLowerCase() === xHandle.toLowerCase()
+      );
+      if (fromCache.length > 0) {
+        return fromCache;
+      }
+    }
+
+    // Cache miss — call TrustMRR directly
     const allProducts: TreeData[] = [];
     let page = 1;
     const limit = 50;
@@ -110,7 +127,6 @@ export class MakerGardenService {
       hasMore = response.meta.hasMore;
       page++;
 
-      // Safety limit - no maker should have 500 products
       if (allProducts.length >= 500) {
         break;
       }
