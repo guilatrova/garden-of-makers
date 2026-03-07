@@ -4,6 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { MakerGardenService } from "@/lib/services/garden";
 import { TreeData } from "@/lib/services/tree/types";
 import { getCategoryDisplayName, getCategoryColor } from "@/lib/constants/categories";
+import { formatMRR } from "@/lib/utils/format";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft, Twitter, TrendingUp, Users, Store } from "lucide-react";
 import { GardenScene } from "./GardenScene";
@@ -29,7 +30,7 @@ export async function generateMetadata({ params }: GardenPageProps): Promise<Met
     }
 
     const displayName = garden.xName ?? `@${garden.xHandle}`;
-    const mrrFormatted = `$${(garden.totalMRR / 100 / 1000).toFixed(1)}k/mo total`;
+    const mrrFormatted = `${formatMRR(garden.totalMRR)} total`;
 
     return {
       title: `${displayName}'s Garden | Garden of Makers`,
@@ -53,19 +54,6 @@ export async function generateMetadata({ params }: GardenPageProps): Promise<Met
   }
 }
 
-/**
- * Format MRR for display
- */
-function formatMRR(mrrCents: number): string {
-  const mrr = mrrCents / 100;
-  if (mrr >= 1_000_000) {
-    return `$${(mrr / 1_000_000).toFixed(1)}M/mo`;
-  }
-  if (mrr >= 1_000) {
-    return `$${(mrr / 1_000).toFixed(1)}k/mo`;
-  }
-  return `$${Math.round(mrr)}/mo`;
-}
 
 /**
  * Get garden size display info

@@ -11,6 +11,7 @@ import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import { DealRating } from "@/lib/services/tree/TreeCalculator";
+import { formatAskingPrice } from "@/lib/utils/format";
 
 export interface ForSaleSignProps {
   treeHeight: number;
@@ -25,13 +26,6 @@ const DEAL_FLAG_STYLES: Record<DealRating, { bg: string; emissive: string; textC
 };
 
 const DEFAULT_FLAG_STYLE = { bg: "#888888", emissive: "#888888", textColor: "#CCCCCC", priceColor: "#AAAAAA", label: "ON SALE" };
-
-function formatAskingPrice(cents: number): string {
-  const dollars = cents / 100;
-  if (dollars >= 1_000_000) return `$${(dollars / 1_000_000).toFixed(1)}M`;
-  if (dollars >= 1000) return `$${(dollars / 1000).toFixed(0)}k`;
-  return `$${dollars.toFixed(0)}`;
-}
 
 export function ForSaleSign({ treeHeight, canopyRadius, askingPriceCents, dealRating }: ForSaleSignProps) {
   const flagRef = useRef<THREE.Group>(null);

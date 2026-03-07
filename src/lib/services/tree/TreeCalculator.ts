@@ -26,17 +26,16 @@ export function getEffectiveMRR(mrrCents: number, revenueLast30DaysCents: number
  * Thresholds based on PROJECT.md specification
  * Uses effective MRR which falls back to 30-day revenue if MRR is 0
  */
-export function getTier(mrrCents: number, revenueLast30DaysCents: number = 0): TreeTier {
-  const effectiveMRR = getEffectiveMRR(mrrCents, revenueLast30DaysCents);
-  const mrr = effectiveMRR / 100; // convert cents to dollars
+export function getTier(mrr: number, revenueLast30Days: number = 0): TreeTier {
+  const effectiveMRR = getEffectiveMRR(mrr, revenueLast30Days);
 
-  if (mrr === 0) return "seed";
-  if (mrr <= 100) return "sprout";
-  if (mrr <= 1_000) return "shrub";
-  if (mrr <= 5_000) return "young";
-  if (mrr <= 25_000) return "mature";
-  if (mrr <= 100_000) return "great";
-  if (mrr <= 500_000) return "ancient";
+  if (effectiveMRR === 0) return "seed";
+  if (effectiveMRR <= 100) return "sprout";
+  if (effectiveMRR <= 1_000) return "shrub";
+  if (effectiveMRR <= 5_000) return "young";
+  if (effectiveMRR <= 25_000) return "mature";
+  if (effectiveMRR <= 100_000) return "great";
+  if (effectiveMRR <= 500_000) return "ancient";
   return "world";
 }
 

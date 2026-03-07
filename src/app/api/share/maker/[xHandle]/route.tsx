@@ -1,5 +1,6 @@
 import { ImageResponse } from "next/og";
 import { MakerGardenService } from "@/lib/services/garden";
+import { formatMRR } from "@/lib/utils/format";
 
 export const runtime = "edge";
 
@@ -285,16 +286,3 @@ function generateErrorImage(): ImageResponse {
   );
 }
 
-/**
- * Format MRR for display
- */
-function formatMRR(mrrCents: number): string {
-  const mrr = mrrCents / 100;
-  if (mrr >= 1_000_000) {
-    return `$${(mrr / 1_000_000).toFixed(1)}M/mo`;
-  }
-  if (mrr >= 1_000) {
-    return `$${(mrr / 1_000).toFixed(1)}k/mo`;
-  }
-  return `$${Math.round(mrr)}/mo`;
-}

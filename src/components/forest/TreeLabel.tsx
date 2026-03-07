@@ -8,22 +8,12 @@
 import { Html } from "@react-three/drei";
 import { TreeData } from "@/lib/services/tree/types";
 import { getCategoryDisplayName, getCategoryColor } from "@/lib/constants/categories";
+import { formatRevenue } from "@/lib/utils/format";
 
 export interface TreeLabelProps {
   data: TreeData;
   visible: boolean;
   position: [number, number, number];
-}
-
-/**
- * Format MRR for display (cents to $X.Xk format)
- */
-function formatMRR(mrrCents: number): string {
-  const mrr = mrrCents / 100;
-  if (mrr >= 1000) {
-    return `$${(mrr / 1000).toFixed(1)}k`;
-  }
-  return `$${mrr.toFixed(0)}`;
 }
 
 /**
@@ -40,7 +30,7 @@ export function TreeLabel({ data, visible, position }: TreeLabelProps) {
 
   const categoryName = getCategoryDisplayName(data.category);
   const categoryColor = getCategoryColor(data.category);
-  const mrrFormatted = formatMRR(data.mrrCents);
+  const mrrFormatted = formatRevenue(data.mrrCents);
   const growthIndicator = getGrowthIndicator(data.growth30d);
   const growthPositive = data.growth30d !== null && data.growth30d > 0;
 

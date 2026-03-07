@@ -198,9 +198,7 @@ export function ForestView({
         if (flyMode) {
           setFlyMode(false);
           setExploreMode(true);
-        } else if (exploreMode) {
-          setExploreMode(false);
-          setSearchFocusSlug(null);
+        } else if (selectedTree) {
           setSelectedTree(null);
         }
       }

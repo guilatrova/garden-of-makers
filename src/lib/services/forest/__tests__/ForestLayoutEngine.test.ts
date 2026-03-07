@@ -124,7 +124,7 @@ describe("ForestLayoutEngine", () => {
       expect(result[0].position.z).toBe(0);
     });
 
-    it("should place 50 trees within radius ~70u (lotSize * sqrt(49) ≈ 70)", () => {
+    it("should place 50 trees within radius ~140u (lotSize * sqrt(49) ≈ 140)", () => {
       const trees: TreeData[] = [];
       for (let i = 0; i < 50; i++) {
         trees.push(createTestTree(`tree-${i}`, "young", 100_000 + i * 1000, "saas"));
@@ -140,11 +140,11 @@ describe("ForestLayoutEngine", () => {
         maxRadius = Math.max(maxRadius, radius);
       }
 
-      // lotSize * sqrt(49) = 10 * 7 = 70, allow some tolerance
-      expect(maxRadius).toBeLessThan(80);
+      // lotSize * sqrt(49) = 20 * 7 = 140, allow some tolerance
+      expect(maxRadius).toBeLessThan(160);
     });
 
-    it("should place 5000 trees within radius ~710u (lotSize * sqrt(4999) ≈ 707)", () => {
+    it("should place 5000 trees within radius ~1414u (lotSize * sqrt(4999) ≈ 1414)", () => {
       const trees: TreeData[] = [];
       for (let i = 0; i < 5000; i++) {
         trees.push(createTestTree(`tree-${i}`, "young", 100_000 + i * 100, "saas"));
@@ -160,8 +160,8 @@ describe("ForestLayoutEngine", () => {
         maxRadius = Math.max(maxRadius, radius);
       }
 
-      // lotSize * sqrt(4999) ≈ 10 * 70.7 ≈ 707, allow some tolerance
-      expect(maxRadius).toBeLessThan(750);
+      // lotSize * sqrt(4999) ≈ 20 * 70.7 ≈ 1414, allow some tolerance
+      expect(maxRadius).toBeLessThan(1500);
     });
 
     it("should sort trees by MRR descending - first tree has highest MRR", () => {
@@ -278,7 +278,7 @@ describe("ForestLayoutEngine", () => {
   describe("config management", () => {
     it("should get default config", () => {
       const config = engine.getConfig();
-      expect(config.lotSize).toBe(10);
+      expect(config.lotSize).toBe(20);
     });
 
     it("should update config", () => {

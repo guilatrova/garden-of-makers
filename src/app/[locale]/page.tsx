@@ -156,10 +156,10 @@ function TierShowcaseSection({ t }: { t: Awaited<ReturnType<typeof getTranslatio
                 {tierNames[tier.tier]}
               </h3>
               <p className="mb-3 text-sm text-green-400">
-                {tier.minMrrCents === 0 && tier.maxMrrCents === 0
+                {tier.minMrr === 0 && tier.maxMrr === 0
                   ? "$0"
-                  : `${formatMRR(tier.minMrrCents)} - ${
-                      tier.maxMrrCents ? formatMRR(tier.maxMrrCents) : "$1M+"
+                  : `${formatMRR(tier.minMrr)} - ${
+                      tier.maxMrr ? formatMRR(tier.maxMrr) : "$1M+"
                     }`}
               </p>
               <p className="text-xs text-gray-500">

@@ -7,6 +7,7 @@
 
 import { TreeData } from "@/lib/services/tree/types";
 import { getCategoryDisplayName, getCategoryColor } from "@/lib/constants/categories";
+import { formatRevenue, formatPrice } from "@/lib/utils/format";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useEffect } from "react";
@@ -19,52 +20,6 @@ interface StartupDrawerProps {
   siblingIndex?: number;
   onNextProduct?: () => void;
   onPrevProduct?: () => void;
-}
-
-/**
- * Format MRR for display (cents to $X.Xk/mo format)
- */
-function formatMRR(mrrCents: number): string {
-  if (mrrCents === 0) return "";
-  const mrr = mrrCents / 100;
-  if (mrr >= 1_000_000) {
-    const val = mrr / 1_000_000;
-    return `$${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}M`;
-  }
-  if (mrr >= 1000) {
-    const val = mrr / 1000;
-    return `$${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}k`;
-  }
-  return `$${Math.round(mrr)}`;
-}
-
-/**
- * Format revenue for display
- */
-function formatRevenue(revenueCents: number): string {
-  if (revenueCents === 0) return "";
-  const revenue = revenueCents / 100;
-  if (revenue >= 1_000_000) {
-    const val = revenue / 1_000_000;
-    return `$${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}M`;
-  }
-  if (revenue >= 1000) {
-    const val = revenue / 1000;
-    return `$${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}k`;
-  }
-  return `$${Math.round(revenue)}`;
-}
-
-/**
- * Format asking price for display
- */
-function formatPrice(priceCents: number | null): string {
-  if (priceCents === null) return "—";
-  const price = priceCents / 100;
-  if (price >= 1000) {
-    return `$${(price / 1000).toFixed(1)}k`;
-  }
-  return `$${price.toFixed(0)}`;
 }
 
 /**
@@ -191,7 +146,7 @@ export function StartupDrawer({ startup, onClose, siblingCount = 0, siblingIndex
               <div>
                 <div className="text-sm text-gray-400">{t("mrr")}</div>
                 <div className="text-3xl font-bold text-green-400">
-                  {formatMRR(startup.mrrCents)}
+                  {formatRevenue(startup.mrrCents)}
                 </div>
               </div>
               <div className="text-3xl font-bold text-gray-600">|</div>

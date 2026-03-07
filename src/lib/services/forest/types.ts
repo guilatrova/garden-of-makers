@@ -35,5 +35,5 @@ export interface ForestLayoutConfig {
 }
 
 export const DEFAULT_LAYOUT_CONFIG: ForestLayoutConfig = {
-  lotSize: 10,
+  lotSize: 20,
 };

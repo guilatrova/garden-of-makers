@@ -1,6 +1,7 @@
 import { ImageResponse } from "next/og";
 import { TrustMRRProvider } from "@/lib/providers/trustmrr";
 import { TreeService } from "@/lib/services/tree";
+import { formatMRR } from "@/lib/utils/format";
 
 export const runtime = "edge";
 
@@ -23,7 +24,7 @@ export async function GET(
     const treeData = treeService.mapToTreeData(startup);
 
     // Format MRR
-    const mrrFormatted = `$${(startup.revenue.mrr / 100 / 1000).toFixed(1)}k/mo`;
+    const mrrFormatted = formatMRR(startup.revenue.mrr);
     const customersFormatted = startup.customers.toLocaleString();
 
     // Get tier info

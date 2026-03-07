@@ -23,6 +23,7 @@ export class TreeService {
 
   /**
    * Map a TrustMRR startup to TreeData
+   * All revenue values are in dollars (from API/DB)
    */
   mapToTreeData(startup: TrustMRRStartup, position?: { x: number; y: number; z: number }): TreeData {
     const tier = getTier(startup.revenue.mrr, startup.revenue.last30Days);

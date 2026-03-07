@@ -5,6 +5,7 @@ import { TreeService } from "@/lib/services/tree";
 import { TreeData } from "@/lib/services/tree/types";
 import { mapRowToStartup, StartupRow } from "@/lib/utils/supabase/mappers";
 import { getCategoryDisplayName, getCategoryColor } from "@/lib/constants/categories";
+import { formatMRR } from "@/lib/utils/format";
 import { Link } from "@/i18n/routing";
 import { ArrowUpRight, ArrowDownRight, Minus, TrendingUp, Store } from "lucide-react";
 
@@ -15,20 +16,6 @@ export const metadata: Metadata = {
 
 interface LeaderboardEntry extends TreeData {
   rank: number;
-}
-
-/**
- * Format MRR for display
- */
-function formatMRR(mrrCents: number): string {
-  const mrr = mrrCents / 100;
-  if (mrr >= 1_000_000) {
-    return `$${(mrr / 1_000_000).toFixed(1)}M/mo`;
-  }
-  if (mrr >= 1_000) {
-    return `$${(mrr / 1_000).toFixed(1)}k/mo`;
-  }
-  return `$${Math.round(mrr)}/mo`;
 }
 
 /**

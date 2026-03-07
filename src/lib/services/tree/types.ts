@@ -16,8 +16,8 @@ export type TreeTier =
 
 export interface TierConfig {
   tier: TreeTier;
-  minMrrCents: number;
-  maxMrrCents: number | null;
+  minMrr: number;
+  maxMrr: number | null;
   relativeHeight: number; // 1x, 2x, 5x, 12x, 25x, 50x, 100x
   trunkRadius: number;
   canopyRadius: number;

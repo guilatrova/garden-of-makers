@@ -1,18 +1,13 @@
 /**
  * Format utilities for currency and numbers
+ * All monetary values from the TrustMRR API are in dollars.
  */
 
 /**
- * Format MRR for display (cents to readable format)
- * Examples:
- *   500 cents -> $5/mo
- *   50000 cents -> $500/mo
- *   500000 cents -> $5k/mo
- *   50000000 cents -> $500k/mo
+ * Format MRR for display
+ * Input is dollars (e.g. 15088 = $15,088)
  */
-export function formatMRR(mrrCents: number): string {
-  const mrr = mrrCents / 100;
-  
+export function formatMRR(mrr: number): string {
   if (mrr >= 1_000_000) {
     return `$${(mrr / 1_000_000).toFixed(1)}M/mo`;
   }
@@ -24,10 +19,10 @@ export function formatMRR(mrrCents: number): string {
 
 /**
  * Format revenue for display
+ * Input is dollars
  */
-export function formatRevenue(revenueCents: number): string {
-  const revenue = revenueCents / 100;
-  
+export function formatRevenue(revenue: number): string {
+  if (revenue === 0) return "";
   if (revenue >= 1_000_000) {
     return `$${(revenue / 1_000_000).toFixed(1)}M`;
   }
@@ -39,10 +34,21 @@ export function formatRevenue(revenueCents: number): string {
 
 /**
  * Format asking price for display
+ * Input is dollars
  */
-export function formatPrice(priceCents: number | null): string {
-  if (priceCents === null) return "—";
-  return formatRevenue(priceCents);
+export function formatPrice(price: number | null): string {
+  if (price === null) return "—";
+  return formatRevenue(price);
+}
+
+/**
+ * Format asking price for 3D sign labels
+ * Input is dollars
+ */
+export function formatAskingPrice(dollars: number): string {
+  if (dollars >= 1_000_000) return `$${(dollars / 1_000_000).toFixed(1)}M`;
+  if (dollars >= 1000) return `$${(dollars / 1000).toFixed(0)}k`;
+  return `$${dollars.toFixed(0)}`;
 }
 
 /**
