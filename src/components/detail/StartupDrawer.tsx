@@ -264,7 +264,7 @@ export function StartupDrawer({ startup, onClose }: StartupDrawerProps) {
                     className="flex items-center justify-center gap-2 rounded-lg bg-gray-800 px-4 py-3 text-white hover:bg-gray-700 transition-colors"
                   >
                     <Twitter className="h-4 w-4" />
-                    {t("viewOnX")}
+                    @{startup.xHandle.replace("@", "")}
                   </a>
                   <a
                     href={`/garden/${startup.xHandle.replace("@", "")}`}
