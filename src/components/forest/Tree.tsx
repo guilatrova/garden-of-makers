@@ -9,7 +9,7 @@
 import { useMemo, useRef } from "react";
 import { Mesh, Group, CylinderGeometry, SphereGeometry, IcosahedronGeometry } from "three";
 import { useFrame } from "@react-three/fiber";
-import { getTierConfig } from "@/lib/services/tree/TreeCalculator";
+import { getTierConfig, getEffectiveMRR } from "@/lib/services/tree/TreeCalculator";
 import { TreeData, TreeTier } from "@/lib/services/tree/types";
 import { BASE_TREE_HEIGHT } from "@/lib/constants/tiers";
 
@@ -44,6 +44,7 @@ export const CANOPY_COLORS: Record<TreeTier, string> = {
 
 /**
  * Calculate interpolated height within tier range
+ * Uses effective MRR (with 30-day revenue fallback) for consistent sizing
  */
 function getInterpolatedHeight(tree: TreeData): number {
   const config = getTierConfig(tree.tier);
@@ -52,7 +53,9 @@ function getInterpolatedHeight(tree: TreeData): number {
   // For tiers with maxMrrCents, interpolate height within the tier
   if (config.maxMrrCents !== null && config.minMrrCents !== config.maxMrrCents) {
     const tierRange = config.maxMrrCents - config.minMrrCents;
-    const mrrInTier = tree.mrrCents - config.minMrrCents;
+    // Use effective MRR for consistent height calculation
+    const effectiveMRR = getEffectiveMRR(tree.mrrCents, tree.revenueLast30DaysCents);
+    const mrrInTier = effectiveMRR - config.minMrrCents;
     const progress = Math.min(1, Math.max(0, mrrInTier / tierRange));
     
     // Interpolate between 80% and 100% of the tier's relative height
