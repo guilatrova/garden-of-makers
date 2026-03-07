@@ -33,8 +33,7 @@ export class MakerGardenService {
     this.trustMRRProvider = trustMRRProvider ?? new TrustMRRProvider();
     this.treeService = treeService ?? new TreeService();
     this.config = {
-      defaultZoneRadius: 15,
-      centerSpecialTrees: false,
+      lotSize: 5,
       ...config,
     };
   }
@@ -152,14 +151,10 @@ export class MakerGardenService {
   }
 
   private positionProductsInGarden(products: TreeData[]): PositionedTree[] {
-    const sortedProducts = [...products].sort((a, b) => b.mrrCents - a.mrrCents);
-
     const layoutEngine = new ForestLayoutEngine({
-      zoneRadius: this.config.defaultZoneRadius ?? 15,
-      spacingMultiplier: 2.0,
-      centerSpecialTrees: false,
+      lotSize: this.config.lotSize ?? 5,
     });
 
-    return layoutEngine.positionTrees(sortedProducts);
+    return layoutEngine.positionTrees(products);
   }
 }

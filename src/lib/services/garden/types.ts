@@ -19,8 +19,7 @@ export interface MakerGarden {
 }
 
 export interface MakerGardenServiceConfig {
-  defaultZoneRadius?: number;
-  centerSpecialTrees?: boolean;
+  lotSize?: number;
 }
 
 /**
