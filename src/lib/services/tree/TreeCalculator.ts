@@ -13,11 +13,21 @@ import { FRUIT_VALUES } from "@/lib/constants/fruits";
  */
 
 /**
+ * Calculate effective MRR for tier determination
+ * Falls back to revenueLast30DaysCents if MRR is 0 (e.g., one-time products)
+ */
+export function getEffectiveMRR(mrrCents: number, revenueLast30DaysCents: number = 0): number {
+  return mrrCents > 0 ? mrrCents : revenueLast30DaysCents;
+}
+
+/**
  * Get tree tier based on MRR in cents
  * Thresholds based on PROJECT.md specification
+ * Uses effective MRR which falls back to 30-day revenue if MRR is 0
  */
-export function getTier(mrrCents: number): TreeTier {
-  const mrr = mrrCents / 100; // convert cents to dollars
+export function getTier(mrrCents: number, revenueLast30DaysCents: number = 0): TreeTier {
+  const effectiveMRR = getEffectiveMRR(mrrCents, revenueLast30DaysCents);
+  const mrr = effectiveMRR / 100; // convert cents to dollars
 
   if (mrr === 0) return "seed";
   if (mrr <= 100) return "sprout";
