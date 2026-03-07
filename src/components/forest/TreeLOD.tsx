@@ -42,6 +42,7 @@ const LOD_THRESHOLDS = {
 
 // Frame skip for distance calculation (throttle to every 10 frames)
 const FRAME_SKIP = 10;
+const _worldPos = new THREE.Vector3();
 
 // Seeded random for deterministic results
 const seededRandom = (n: number) => {
@@ -290,10 +291,8 @@ export function TreeLOD({ data, onClick, showLabel }: TreeLODProps) {
 
     if (!groupRef.current) return;
 
-    const treePosition = groupRef.current.position;
-    const cameraPosition = camera.position;
-
-    const distance = treePosition.distanceTo(cameraPosition);
+    const treePosition = groupRef.current.getWorldPosition(_worldPos);
+    const distance = treePosition.distanceTo(camera.position);
 
     let newLevel: LODLevel;
     if (distance < LOD_THRESHOLDS.near) {
