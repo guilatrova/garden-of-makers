@@ -25,8 +25,10 @@ export class TreeService {
    * Map a TrustMRR startup to TreeData
    */
   mapToTreeData(startup: TrustMRRStartup, position?: { x: number; y: number; z: number }): TreeData {
-    const tier = getTier(startup.revenue.mrr);
-    const fruits = getFruitBreakdown(startup.customers);
+    const tier = getTier(startup.revenue.mrr, startup.revenue.last30Days);
+    // Use activeSubscriptions as fallback when customers is 0
+    const effectiveCustomers = startup.customers > 0 ? startup.customers : startup.activeSubscriptions;
+    const fruits = getFruitBreakdown(effectiveCustomers);
 
     return {
       slug: startup.slug,
@@ -37,7 +39,7 @@ export class TreeService {
       mrrCents: startup.revenue.mrr,
       revenueLast30DaysCents: startup.revenue.last30Days,
       totalRevenueCents: startup.revenue.total,
-      customers: startup.customers,
+      customers: effectiveCustomers,
       activeSubscriptions: startup.activeSubscriptions,
       growth30d: startup.growth30d,
       onSale: startup.onSale,
