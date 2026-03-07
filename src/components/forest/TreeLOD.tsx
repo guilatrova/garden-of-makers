@@ -291,10 +291,30 @@ export function TreeLOD({ data, onClick, showLabel }: TreeLODProps) {
   const tierConfig = useMemo(() => getTierConfig(data.tier), [data.tier]);
   const height = BASE_TREE_HEIGHT * tierConfig.relativeHeight;
 
+  // Invisible hitbox: always present, covers the full tree height + canopy
+  const trunkTop = height * 0.6;
+  const canopyCenter = trunkTop + tierConfig.canopyRadius * 0.5;
+  const hitboxHeight = canopyCenter + tierConfig.canopyRadius;
+  const hitboxRadius = Math.max(tierConfig.canopyRadius, 3);
+
+  const handleClick = () => onClick?.(data);
+
   return (
     <group ref={groupRef}>
+      {/* Invisible clickable hitbox — always present at all LOD levels */}
+      <mesh
+        position={[0, hitboxHeight / 2, 0]}
+        onClick={handleClick}
+        onPointerOver={() => { document.body.style.cursor = "pointer"; }}
+        onPointerOut={() => { document.body.style.cursor = "auto"; }}
+        visible={false}
+      >
+        <cylinderGeometry args={[hitboxRadius, hitboxRadius, hitboxHeight, 8]} />
+        <meshBasicMaterial />
+      </mesh>
+
       {lodLevel === "near" && (
-        <FullTree data={data} onClick={onClick} showLabel={showLabel} />
+        <FullTree data={data} showLabel={showLabel} />
       )}
       {lodLevel === "mid" && <SimplifiedTree data={data} />}
       {lodLevel === "far" && <TreeBillboard tier={data.tier} height={height} />}

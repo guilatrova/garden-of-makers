@@ -18,6 +18,8 @@ import { TreeLOD } from "./TreeLOD";
 export interface ForestSceneProps {
   trees: TreeData[];
   onTreeClick?: (tree: TreeData) => void;
+  flyMode?: boolean;
+  onExitFly?: () => void;
 }
 
 /**
@@ -179,17 +181,22 @@ function CameraFocus({
       startLook.current.copy(controlsRef.current.target);
     }
 
-    const dist = Math.max(30, height * 2.5);
-    const camHeight = Math.max(20, height * 1.2);
+    // Position camera close to the tree, like git-city does with buildings
+    const trunkTop = height * 0.6;
+    const canopyCenter = trunkTop + tierConfig.canopyRadius * 0.5;
+    const canopyTop = canopyCenter + tierConfig.canopyRadius;
+
+    // Camera offset: close, slightly above canopy, looking at canopy center
+    const dist = Math.max(15, tierConfig.canopyRadius * 3);
 
     endPos.current.set(
       tree.position.x + dist,
-      camHeight,
+      canopyTop + tierConfig.canopyRadius * 0.5,
       tree.position.z + dist
     );
     endLook.current.set(
       tree.position.x,
-      height * 0.4,
+      canopyCenter,
       tree.position.z
     );
 
@@ -221,6 +228,214 @@ function CameraFocus({
   });
 
   return null;
+}
+
+// ─── Focus Beacon (light beam + floating diamond on selected tree) ───
+
+const BEACON_HEIGHT = 300;
+const SPOTLIGHT_Y = 250;
+const ACCENT_COLOR = "#4ade80"; // green-400
+
+function FocusBeacon({
+  treeHeight,
+  canopyRadius,
+}: {
+  treeHeight: number;
+  canopyRadius: number;
+}) {
+  const coneRef = useRef<THREE.Mesh>(null);
+  const markerRef = useRef<THREE.Group>(null);
+
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    if (coneRef.current) {
+      (coneRef.current.material as THREE.MeshBasicMaterial).opacity =
+        0.08 + Math.sin(t * 1.5) * 0.03;
+    }
+    if (markerRef.current) {
+      markerRef.current.position.y = treeHeight + 15 + Math.sin(t * 2) * 3;
+      markerRef.current.rotation.y = t * 1.5;
+    }
+  });
+
+  const coneRadius = Math.max(canopyRadius * 1.5, 5);
+  const diamondSize = Math.max(canopyRadius * 0.4, 2);
+
+  return (
+    <group>
+      {/* Spotlight cone from sky */}
+      <mesh ref={coneRef} position={[0, SPOTLIGHT_Y / 2, 0]}>
+        <cylinderGeometry args={[0, coneRadius, SPOTLIGHT_Y, 32, 1, true]} />
+        <meshBasicMaterial
+          color={ACCENT_COLOR}
+          transparent
+          opacity={0.08}
+          side={THREE.DoubleSide}
+          depthWrite={false}
+        />
+      </mesh>
+
+      {/* Thin bright core beam */}
+      <mesh position={[0, BEACON_HEIGHT / 2, 0]}>
+        <boxGeometry args={[0.8, BEACON_HEIGHT, 0.8]} />
+        <meshBasicMaterial color={ACCENT_COLOR} transparent opacity={0.25} depthWrite={false} />
+      </mesh>
+
+      {/* Floating diamond marker */}
+      <group ref={markerRef} position={[0, treeHeight + 15, 0]}>
+        <mesh>
+          <octahedronGeometry args={[diamondSize, 0]} />
+          <meshBasicMaterial color={ACCENT_COLOR} />
+        </mesh>
+        <mesh scale={[1.6, 1.6, 1.6]}>
+          <octahedronGeometry args={[diamondSize, 0]} />
+          <meshBasicMaterial color={ACCENT_COLOR} transparent opacity={0.15} />
+        </mesh>
+      </group>
+    </group>
+  );
+}
+
+// ─── Flight Mode (mouse-driven flight over the forest) ──────
+
+const FLY_SPEED = 60;
+const MIN_ALT = 15;
+const MAX_ALT = 500;
+const TURN_RATE = 2.0;
+const CLIMB_RATE = 50;
+const MAX_BANK = 0.55;
+const MAX_PITCH = 0.7;
+const FLY_DEADZONE = 0.08;
+
+function flyDeadzoneCurve(v: number): number {
+  const abs = Math.abs(v);
+  if (abs < FLY_DEADZONE) return 0;
+  const adjusted = (abs - FLY_DEADZONE) / (1 - FLY_DEADZONE);
+  return Math.sign(v) * adjusted * adjusted;
+}
+
+const _fwd = new THREE.Vector3();
+const _camOffset = new THREE.Vector3();
+const _idealCamPos = new THREE.Vector3();
+const _idealLook = new THREE.Vector3();
+const _yAxis = new THREE.Vector3(0, 1, 0);
+
+function FlightMode({ onExit }: { onExit: () => void }) {
+  const { camera } = useThree();
+  const birdRef = useRef<THREE.Group>(null);
+
+  const mouse = useRef({ x: 0, y: 0 });
+  const keys = useRef<Record<string, boolean>>({});
+  const yaw = useRef(0);
+  const pos = useRef(new THREE.Vector3(0, 80, 200));
+  const bank = useRef(0);
+  const pitch = useRef(0);
+  const camPos = useRef(new THREE.Vector3(0, 100, 250));
+  const camLook = useRef(new THREE.Vector3(0, 80, 200));
+
+  // Initialize from current camera
+  useEffect(() => {
+    const camDir = new THREE.Vector3();
+    camera.getWorldDirection(camDir);
+    yaw.current = Math.atan2(-camDir.x, -camDir.z);
+
+    const startPos = camera.position.clone();
+    startPos.y = Math.max(MIN_ALT, Math.min(MAX_ALT, startPos.y));
+    pos.current.copy(startPos);
+
+    const behindOffset = new THREE.Vector3(
+      Math.sin(yaw.current) * 40,
+      15,
+      Math.cos(yaw.current) * 40
+    );
+    camPos.current.copy(startPos).add(behindOffset);
+    camLook.current.copy(startPos);
+    camera.position.copy(camPos.current);
+    camera.lookAt(camLook.current);
+  }, [camera]);
+
+  // Mouse tracking
+  useEffect(() => {
+    const onMove = (e: MouseEvent) => {
+      mouse.current.x = (e.clientX / window.innerWidth) * 2 - 1;
+      mouse.current.y = -((e.clientY / window.innerHeight) * 2 - 1);
+    };
+    window.addEventListener("mousemove", onMove);
+    return () => window.removeEventListener("mousemove", onMove);
+  }, []);
+
+  // Keyboard
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      keys.current[e.code] = true;
+      if (e.code === "Escape") onExit();
+    };
+    const up = (e: KeyboardEvent) => { keys.current[e.code] = false; };
+    window.addEventListener("keydown", down);
+    window.addEventListener("keyup", up);
+    return () => {
+      window.removeEventListener("keydown", down);
+      window.removeEventListener("keyup", up);
+    };
+  }, [onExit]);
+
+  useFrame((_, delta) => {
+    const dt = Math.min(delta, 0.05);
+    const k = keys.current;
+
+    let turnInput = flyDeadzoneCurve(mouse.current.x);
+    if (k["KeyA"] || k["ArrowLeft"]) turnInput = -1;
+    if (k["KeyD"] || k["ArrowRight"]) turnInput = 1;
+    yaw.current -= turnInput * TURN_RATE * dt;
+
+    let altInput = flyDeadzoneCurve(mouse.current.y);
+    if (k["KeyW"] || k["ArrowUp"]) altInput = 1;
+    if (k["KeyS"] || k["ArrowDown"]) altInput = -1;
+
+    let speedMult = 1;
+    if (k["ShiftLeft"] || k["ShiftRight"]) speedMult = 2;
+
+    const actualSpeed = FLY_SPEED * speedMult;
+    pos.current.y += altInput * CLIMB_RATE * dt;
+    pos.current.y = Math.max(MIN_ALT, Math.min(MAX_ALT, pos.current.y));
+
+    _fwd.set(-Math.sin(yaw.current), 0, -Math.cos(yaw.current));
+    pos.current.addScaledVector(_fwd, actualSpeed * dt);
+
+    bank.current += (-turnInput * MAX_BANK - bank.current) * 5 * dt;
+    pitch.current += (altInput * MAX_PITCH - pitch.current) * 6 * dt;
+
+    if (birdRef.current) {
+      birdRef.current.visible = true;
+      birdRef.current.position.copy(pos.current);
+      birdRef.current.rotation.set(pitch.current, yaw.current, bank.current, "YXZ");
+    }
+
+    const camDist = 30 + actualSpeed * 0.15;
+    _camOffset.set(0, 12, camDist).applyAxisAngle(_yAxis, yaw.current);
+    _idealCamPos.copy(pos.current).add(_camOffset);
+    _idealLook.copy(pos.current).addScaledVector(_fwd, 5);
+    _idealLook.y += 2;
+
+    camPos.current.x += (_idealCamPos.x - camPos.current.x) * 2.0 * dt;
+    camPos.current.z += (_idealCamPos.z - camPos.current.z) * 2.0 * dt;
+    camPos.current.y += (_idealCamPos.y - camPos.current.y) * 1.8 * dt;
+    camLook.current.lerp(_idealLook, 4.0 * dt);
+
+    camera.position.copy(camPos.current);
+    camera.lookAt(camLook.current);
+  });
+
+  return (
+    <group ref={birdRef}>
+      {/* Simple bird/leaf shape */}
+      <mesh rotation={[0, 0, 0]}>
+        <coneGeometry args={[1.5, 4, 4]} />
+        <meshStandardMaterial color="#4ade80" flatShading />
+      </mesh>
+      <pointLight position={[0, -1, 0]} color="#4ade80" intensity={10} distance={30} />
+    </group>
+  );
 }
 
 // ─── Orbit Controls Scene ───────────────────────────────────
@@ -259,7 +474,7 @@ function OrbitScene({
 
 // ─── Main Component ─────────────────────────────────────────
 
-export function ForestScene({ trees, onTreeClick }: ForestSceneProps) {
+export function ForestScene({ trees, onTreeClick, flyMode, onExitFly }: ForestSceneProps) {
   const [selectedTreeSlug, setSelectedTreeSlug] = useState<string | null>(null);
   const [introMode, setIntroMode] = useState(true);
 
@@ -317,26 +532,36 @@ export function ForestScene({ trees, onTreeClick }: ForestSceneProps) {
         <Ground />
         <GridOverlay />
 
-        {/* Intro flyover or orbit controls */}
+        {/* Camera mode: intro → fly → orbit */}
         {introMode ? (
           <IntroFlyover tallestTree={tallestTree} onEnd={handleIntroEnd} />
+        ) : flyMode ? (
+          <FlightMode onExit={onExitFly ?? (() => {})} />
         ) : (
           <OrbitScene trees={trees} focusedTreeSlug={selectedTreeSlug} />
         )}
 
         {/* Trees */}
-        {trees.map((tree) => (
-          <group
-            key={tree.slug}
-            position={[tree.position.x, tree.position.y, tree.position.z]}
-          >
-            <TreeLOD
-              data={tree}
-              onClick={() => handleTreeClick(tree)}
-              showLabel={selectedTreeSlug === tree.slug}
-            />
-          </group>
-        ))}
+        {trees.map((tree) => {
+          const isSelected = selectedTreeSlug === tree.slug;
+          const tc = getTierConfig(tree.tier);
+          const h = BASE_TREE_HEIGHT * tc.relativeHeight;
+          return (
+            <group
+              key={tree.slug}
+              position={[tree.position.x, tree.position.y, tree.position.z]}
+            >
+              <TreeLOD
+                data={tree}
+                onClick={() => handleTreeClick(tree)}
+                showLabel={false}
+              />
+              {!introMode && isSelected && (
+                <FocusBeacon treeHeight={h} canopyRadius={tc.canopyRadius} />
+              )}
+            </group>
+          );
+        })}
       </Suspense>
     </Canvas>
   );

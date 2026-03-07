@@ -53,6 +53,7 @@ export function ForestView({
     undefined
   );
   const [selectedTree, setSelectedTree] = useState<TreeData | null>(null);
+  const [flyMode, setFlyMode] = useState(false);
 
   const { trees, totalStartups, categories, isLoading, error } = useForest(
     selectedCategory
@@ -73,6 +74,10 @@ export function ForestView({
     setSelectedTree(null);
   }, []);
 
+  const handleExitFly = useCallback(() => {
+    setFlyMode(false);
+  }, []);
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black">
       {/* 3D Canvas */}
@@ -90,7 +95,12 @@ export function ForestView({
           </div>
         </div>
       ) : (
-        <ForestScene trees={displayTrees} onTreeClick={handleTreeClick} />
+        <ForestScene
+          trees={displayTrees}
+          onTreeClick={handleTreeClick}
+          flyMode={flyMode}
+          onExitFly={handleExitFly}
+        />
       )}
 
       {/* Overlay UI */}
@@ -106,26 +116,44 @@ export function ForestView({
         </div>
 
         {/* Top-right: Category filters */}
-        <div className="pointer-events-auto absolute right-6 top-6 flex flex-wrap justify-end gap-2">
-          <CategoryFilter
-            label={t("filters.all")}
-            isActive={selectedCategory === undefined}
-            onClick={() => setSelectedCategory(undefined)}
-          />
-          {displayCategories.slice(0, 8).map((category) => (
+        {!flyMode && (
+          <div className="pointer-events-auto absolute right-6 top-20 flex flex-wrap justify-end gap-2">
             <CategoryFilter
-              key={category}
-              label={category}
-              isActive={selectedCategory === category}
-              onClick={() => setSelectedCategory(category)}
+              label={t("filters.all")}
+              isActive={selectedCategory === undefined}
+              onClick={() => setSelectedCategory(undefined)}
             />
-          ))}
+            {displayCategories.slice(0, 8).map((category) => (
+              <CategoryFilter
+                key={category}
+                label={category}
+                isActive={selectedCategory === category}
+                onClick={() => setSelectedCategory(category)}
+              />
+            ))}
+          </div>
+        )}
+
+        {/* Bottom-left: Fly mode button */}
+        <div className="pointer-events-auto absolute bottom-6 left-6">
+          <button
+            onClick={() => setFlyMode(!flyMode)}
+            className={`rounded-lg border px-5 py-2.5 font-['Silkscreen'] text-sm font-bold shadow-lg transition-all ${
+              flyMode
+                ? "border-green-400 bg-green-500 text-white"
+                : "border-gray-600 bg-gray-900/90 text-green-400 hover:border-green-500 hover:bg-gray-800"
+            }`}
+          >
+            {flyMode ? "ESC EXIT" : "FLY MODE"}
+          </button>
         </div>
 
         {/* Bottom-center: Controls hint */}
         <div className="pointer-events-auto absolute bottom-6 left-1/2 -translate-x-1/2 rounded-lg border border-gray-700 bg-gray-900/90 px-6 py-3 shadow-xl backdrop-blur">
           <p className="text-center text-xs text-gray-400">
-            Click & drag to orbit. Scroll to zoom. Click a tree for details.
+            {flyMode
+              ? "Mouse to steer. W/S or mouse Y to climb/descend. Shift = boost. ESC to exit."
+              : "Click & drag to orbit. Scroll to zoom. Click a tree for details."}
           </p>
         </div>
       </div>
