@@ -2,28 +2,19 @@
 
 /**
  * ForestScene Component
- * Main R3F Canvas that renders the entire forest
+ * Main R3F Canvas that renders the forest as a city of buildings
  */
 
 import { Suspense, useState, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
-import { TreeData, TreeTier } from "@/lib/services/tree/types";
+import { OrbitControls } from "@react-three/drei";
+import { TreeData } from "@/lib/services/tree/types";
 import { Skybox } from "./Skybox";
-import { Terrain } from "./Terrain";
 import { TreeLOD } from "./TreeLOD";
-import { WorldTreeEffects } from "./WorldTreeEffects";
-import { FlightCamera } from "./FlightCamera";
-import { getTierConfig } from "@/lib/services/tree/TreeCalculator";
-import { BASE_TREE_HEIGHT } from "@/lib/constants/tiers";
 
 export interface ForestSceneProps {
   trees: TreeData[];
   onTreeClick?: (tree: TreeData) => void;
-}
-
-// Check if tree is ancient or world tier
-function isSpecialTree(tier: TreeTier): boolean {
-  return tier === "ancient" || tier === "world";
 }
 
 /**
@@ -39,46 +30,27 @@ function LoadingFallback() {
 }
 
 /**
- * Single tree component with special effects wrapper
+ * Ground plane
  */
-function TreeWithEffects({
-  tree,
-  onClick,
-  isSelected,
-}: {
-  tree: TreeData;
-  onClick?: (tree: TreeData) => void;
-  isSelected: boolean;
-}) {
-  const handleClick = useCallback(() => {
-    onClick?.(tree);
-  }, [onClick, tree]);
+function Ground() {
+  return (
+    <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
+      <planeGeometry args={[2000, 2000]} />
+      <meshStandardMaterial color="#1a1a2e" roughness={0.9} />
+    </mesh>
+  );
+}
 
-  const treeContent = (
-    <TreeLOD
-      data={tree}
-      onClick={handleClick}
-      showLabel={isSelected}
+/**
+ * Grid overlay on the ground
+ */
+function GridOverlay() {
+  return (
+    <gridHelper
+      args={[2000, 200, "#2a2a4e", "#222244"]}
+      position={[0, 0.01, 0]}
     />
   );
-
-  // Wrap ancient/world trees with special effects
-  if (isSpecialTree(tree.tier)) {
-    const tierConfig = getTierConfig(tree.tier);
-    const height = BASE_TREE_HEIGHT * tierConfig.relativeHeight;
-
-    return (
-      <WorldTreeEffects
-        tier={tree.tier as "ancient" | "world"}
-        treeHeight={height}
-        trunkRadius={tierConfig.trunkRadius}
-      >
-        {treeContent}
-      </WorldTreeEffects>
-    );
-  }
-
-  return treeContent;
 }
 
 export function ForestScene({ trees, onTreeClick }: ForestSceneProps) {
@@ -112,14 +84,22 @@ export function ForestScene({ trees, onTreeClick }: ForestSceneProps) {
       }}
     >
       <Suspense fallback={<LoadingFallback />}>
-        {/* Lighting and sky */}
+        {/* Sky and lighting */}
         <Skybox timeOfDay={12} shadows />
 
-        {/* Terrain */}
-        <Terrain />
+        {/* Dark ground + grid (city-like) */}
+        <Ground />
+        <GridOverlay />
 
-        {/* Flight camera */}
-        <FlightCamera />
+        {/* Simple orbit controls instead of flight camera */}
+        <OrbitControls
+          makeDefault
+          enableDamping
+          dampingFactor={0.05}
+          minDistance={10}
+          maxDistance={1000}
+          maxPolarAngle={Math.PI / 2.1}
+        />
 
         {/* Trees */}
         {trees.map((tree) => (
@@ -127,10 +107,10 @@ export function ForestScene({ trees, onTreeClick }: ForestSceneProps) {
             key={tree.slug}
             position={[tree.position.x, tree.position.y, tree.position.z]}
           >
-            <TreeWithEffects
-              tree={tree}
-              onClick={handleTreeClick}
-              isSelected={selectedTreeSlug === tree.slug}
+            <TreeLOD
+              data={tree}
+              onClick={() => handleTreeClick(tree)}
+              showLabel={selectedTreeSlug === tree.slug}
             />
           </group>
         ))}

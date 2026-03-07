@@ -35,7 +35,6 @@ export function ForSaleSign({ position }: ForSaleSignProps) {
         color="#8B0000"
         anchorX="center"
         anchorY="middle"
-        font="/fonts/Inter-Bold.woff"
       >
         FOR SALE
       </Text>

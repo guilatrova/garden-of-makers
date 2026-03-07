@@ -11,7 +11,7 @@ import { TreeData } from "@/lib/services/tree/types";
 import { ForestScene } from "@/components/forest";
 import { StartupDrawer } from "@/components/detail/StartupDrawer";
 import { useForest } from "@/hooks/useForest";
-import { Loader2, MousePointerClick, Move, ChevronUp, ChevronDown, Zap, Unlock } from "lucide-react";
+import { Loader2 } from "lucide-react";
 
 // Category filter button component
 function CategoryFilter({
@@ -122,36 +122,11 @@ export function ForestView({
           ))}
         </div>
 
-        {/* Bottom-center: Flight controls legend */}
-        <div className="pointer-events-auto absolute bottom-6 left-1/2 -translate-x-1/2 rounded-lg border border-gray-700 bg-gray-900/90 px-6 py-4 shadow-xl backdrop-blur">
-          <h3 className="mb-3 text-center text-sm font-semibold text-white">
-            {t("controls.title")}
-          </h3>
-          <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs text-gray-300">
-            <div className="flex items-center gap-2">
-              <Move className="h-3 w-3" />
-              <span>{t("controls.move")}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <MousePointerClick className="h-3 w-3" />
-              <span>{t("controls.look")}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex">
-                <ChevronUp className="h-3 w-3" />
-                <ChevronDown className="h-3 w-3" />
-              </div>
-              <span>{t("controls.upDown")}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Zap className="h-3 w-3" />
-              <span>{t("controls.boost")}</span>
-            </div>
-            <div className="col-span-2 flex items-center justify-center gap-2">
-              <Unlock className="h-3 w-3" />
-              <span>{t("controls.escape")}</span>
-            </div>
-          </div>
+        {/* Bottom-center: Controls hint */}
+        <div className="pointer-events-auto absolute bottom-6 left-1/2 -translate-x-1/2 rounded-lg border border-gray-700 bg-gray-900/90 px-6 py-3 shadow-xl backdrop-blur">
+          <p className="text-center text-xs text-gray-400">
+            Click & drag to orbit. Scroll to zoom. Click a building for details.
+          </p>
         </div>
       </div>
 

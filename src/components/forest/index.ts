@@ -24,6 +24,9 @@ export type { ForSaleSignProps } from "./ForSaleSign";
 export { TreeLabel } from "./TreeLabel";
 export type { TreeLabelProps } from "./TreeLabel";
 
+export { Building } from "./Building";
+export type { BuildingProps } from "./Building";
+
 export { Terrain } from "./Terrain";
 
 export { Skybox } from "./Skybox";
