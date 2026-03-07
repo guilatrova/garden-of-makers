@@ -125,7 +125,7 @@ export function ForestView({
         {/* Bottom-center: Controls hint */}
         <div className="pointer-events-auto absolute bottom-6 left-1/2 -translate-x-1/2 rounded-lg border border-gray-700 bg-gray-900/90 px-6 py-3 shadow-xl backdrop-blur">
           <p className="text-center text-xs text-gray-400">
-            Click & drag to orbit. Scroll to zoom. Click a building for details.
+            Click & drag to orbit. Scroll to zoom. Click a tree for details.
           </p>
         </div>
       </div>
