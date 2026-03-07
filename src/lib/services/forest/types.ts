@@ -30,16 +30,10 @@ export interface PositionedTree extends TreeData {
 }
 
 export interface ForestLayoutConfig {
-  /** Minimum spacing multiplier between trees (relative to canopy radius) */
-  spacingMultiplier: number;
-  /** Maximum zone radius for tree distribution */
-  zoneRadius: number;
-  /** Whether to place ancient/world trees at center */
-  centerSpecialTrees: boolean;
+  /** Fixed lot size for each tree footprint */
+  lotSize: number;
 }
 
 export const DEFAULT_LAYOUT_CONFIG: ForestLayoutConfig = {
-  spacingMultiplier: 2.5,
-  zoneRadius: 80,
-  centerSpecialTrees: true,
+  lotSize: 10,
 };

@@ -6,10 +6,6 @@ export {
   ForestLayoutEngine,
   fibonacciSpiral,
   getDistance,
-  getTreeCanopyRadius,
-  hasPositionConflict,
-  findValidPosition,
-  isSpecialTree,
 } from "./ForestLayoutEngine";
 export { ForestService, forestService } from "./ForestService";
 export type {
