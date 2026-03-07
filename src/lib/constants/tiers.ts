@@ -14,7 +14,7 @@ export const TIER_CONFIGS: TierConfig[] = [
     maxMrrCents: 0,
     relativeHeight: 0.3, // Ground level - visible dot
     trunkRadius: 0.1,
-    canopyRadius: 0.2,
+    canopyRadius: 0.5,
     hasSpecialEffects: false,
   },
   {
@@ -23,7 +23,7 @@ export const TIER_CONFIGS: TierConfig[] = [
     maxMrrCents: 10_000, // $100.00
     relativeHeight: 1, // 1x - tall grass
     trunkRadius: 0.15,
-    canopyRadius: 0.5,
+    canopyRadius: 1.5,
     hasSpecialEffects: false,
   },
   {
@@ -32,7 +32,7 @@ export const TIER_CONFIGS: TierConfig[] = [
     maxMrrCents: 100_000, // $1,000.00
     relativeHeight: 2, // 2x - dense bush
     trunkRadius: 0.3,
-    canopyRadius: 1.0,
+    canopyRadius: 3.0,
     hasSpecialEffects: false,
   },
   {
@@ -41,7 +41,7 @@ export const TIER_CONFIGS: TierConfig[] = [
     maxMrrCents: 500_000, // $5,000.00
     relativeHeight: 4, // 4x - thin birch
     trunkRadius: 0.5,
-    canopyRadius: 1.5,
+    canopyRadius: 4.0,
     hasSpecialEffects: false,
   },
   {
@@ -50,7 +50,7 @@ export const TIER_CONFIGS: TierConfig[] = [
     maxMrrCents: 2_500_000, // $25,000.00
     relativeHeight: 8, // 8x - oak
     trunkRadius: 0.8,
-    canopyRadius: 2.5,
+    canopyRadius: 7.0,
     hasSpecialEffects: false,
   },
   {
@@ -59,7 +59,7 @@ export const TIER_CONFIGS: TierConfig[] = [
     maxMrrCents: 10_000_000, // $100,000.00
     relativeHeight: 15, // 15x - young sequoia
     trunkRadius: 1.2,
-    canopyRadius: 3.5,
+    canopyRadius: 12.0,
     hasSpecialEffects: false,
   },
   {
@@ -68,7 +68,7 @@ export const TIER_CONFIGS: TierConfig[] = [
     maxMrrCents: 50_000_000, // $500,000.00
     relativeHeight: 30, // 30x - mature sequoia
     trunkRadius: 2.0,
-    canopyRadius: 5.0,
+    canopyRadius: 20.0,
     hasSpecialEffects: true, // Visible from any point
   },
   {
@@ -77,7 +77,7 @@ export const TIER_CONFIGS: TierConfig[] = [
     maxMrrCents: null, // No upper limit
     relativeHeight: 60, // 60x+ - Yggdrasil
     trunkRadius: 4.0,
-    canopyRadius: 8.0,
+    canopyRadius: 35.0,
     hasSpecialEffects: true, // Massive, glow, roots, particles
   },
 ];
