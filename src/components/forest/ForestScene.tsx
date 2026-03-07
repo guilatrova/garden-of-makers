@@ -5,7 +5,7 @@
  * Main R3F Canvas that renders the forest with intro flyover + zoom-to-tree
  */
 
-import { Suspense, useState, useCallback, useRef, useEffect, useMemo } from "react";
+import React, { Suspense, useState, useCallback, useRef, useEffect, useMemo } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
@@ -20,6 +20,7 @@ export interface ForestSceneProps {
   onTreeClick?: (tree: TreeData) => void;
   flyMode?: boolean;
   onExitFly?: () => void;
+  holdGrowth?: boolean;
 }
 
 /**
@@ -547,11 +548,87 @@ function OrbitScene({
   );
 }
 
+// ─── Tree Growth Animation ───────────────────────────────────
+
+const GROW_DURATION = 1.0;
+const MAX_GROW_STAGGER = 3;
+
+function GrowingTree({
+  children,
+  growOrder,
+  totalTrees,
+  holdGrowth,
+  enabled,
+}: {
+  children: React.ReactNode;
+  growOrder: number;
+  totalTrees: number;
+  holdGrowth: boolean;
+  enabled: boolean;
+}) {
+  const groupRef = useRef<THREE.Group>(null);
+  const startTime = useRef<number | null>(null);
+  const done = useRef(!enabled);
+  const delay = growOrder * Math.min(0.03, MAX_GROW_STAGGER / Math.max(1, totalTrees));
+
+  useFrame(({ clock }) => {
+    if (!groupRef.current || done.current) return;
+
+    if (holdGrowth) {
+      groupRef.current.scale.set(1, 0, 1);
+      startTime.current = null;
+      return;
+    }
+
+    if (startTime.current === null) {
+      startTime.current = clock.elapsedTime;
+    }
+
+    const elapsed = clock.elapsedTime - startTime.current - delay;
+    if (elapsed < 0) {
+      groupRef.current.scale.set(1, 0, 1);
+      return;
+    }
+
+    const progress = Math.min(1, elapsed / GROW_DURATION);
+    const t = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+    groupRef.current.scale.set(1, t, 1);
+
+    if (progress >= 1) done.current = true;
+  });
+
+  // Don't set scale via JSX prop — R3F reconciler would reset it on re-renders,
+  // overwriting the useFrame animation. Scale is managed entirely in useFrame.
+  return (
+    <group ref={groupRef}>
+      {children}
+    </group>
+  );
+}
+
 // ─── Main Component ─────────────────────────────────────────
 
-export function ForestScene({ trees, onTreeClick, flyMode, onExitFly }: ForestSceneProps) {
+export function ForestScene({ trees, onTreeClick, flyMode, onExitFly, holdGrowth = false }: ForestSceneProps) {
   const [selectedTreeSlug, setSelectedTreeSlug] = useState<string | null>(null);
   const [introMode, setIntroMode] = useState(true);
+
+  // Track whether holdGrowth was ever true (to enable growth animation)
+  const wasHeld = useRef(holdGrowth);
+  if (holdGrowth) wasHeld.current = true;
+
+  // Compute grow order: trees near center grow first, radiating outward
+  const growOrder = useMemo(() => {
+    const withDist = trees.map((t, i) => ({
+      index: i,
+      dist: Math.sqrt(t.position.x ** 2 + t.position.z ** 2),
+    }));
+    withDist.sort((a, b) => a.dist - b.dist);
+    const order = new Array<number>(trees.length);
+    withDist.forEach((item, sortPos) => {
+      order[item.index] = sortPos;
+    });
+    return order;
+  }, [trees]);
 
   const handleTreeClick = useCallback(
     (tree: TreeData) => {
@@ -615,17 +692,17 @@ export function ForestScene({ trees, onTreeClick, flyMode, onExitFly }: ForestSc
         <Ground />
         <GridOverlay />
 
-        {/* Camera mode: intro → fly → orbit */}
-        {introMode ? (
+        {/* Camera mode: intro → fly → orbit (hold intro while loading) */}
+        {introMode && !holdGrowth ? (
           <IntroFlyover tallestTree={tallestTree} onEnd={handleIntroEnd} />
-        ) : flyMode ? (
+        ) : flyMode && !introMode ? (
           <FlightMode onExit={onExitFly ?? (() => {})} />
-        ) : (
+        ) : !introMode ? (
           <OrbitScene trees={trees} focusedTreeSlug={selectedTreeSlug} />
-        )}
+        ) : null}
 
         {/* Trees */}
-        {trees.map((tree) => {
+        {trees.map((tree, i) => {
           const isSelected = selectedTreeSlug === tree.slug;
           const tc = getTierConfig(tree.tier);
           const h = BASE_TREE_HEIGHT * tc.relativeHeight;
@@ -634,11 +711,18 @@ export function ForestScene({ trees, onTreeClick, flyMode, onExitFly }: ForestSc
               key={tree.slug}
               position={[tree.position.x, tree.position.y, tree.position.z]}
             >
-              <TreeLOD
-                data={tree}
-                onClick={() => handleTreeClick(tree)}
-                showLabel={false}
-              />
+              <GrowingTree
+                growOrder={growOrder[i]}
+                totalTrees={trees.length}
+                holdGrowth={holdGrowth}
+                enabled={wasHeld.current}
+              >
+                <TreeLOD
+                  data={tree}
+                  onClick={() => handleTreeClick(tree)}
+                  showLabel={false}
+                />
+              </GrowingTree>
               {!introMode && isSelected && (
                 <FocusBeacon treeHeight={h} canopyRadius={tc.canopyRadius} />
               )}

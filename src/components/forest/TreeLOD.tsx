@@ -10,7 +10,7 @@
 
 import { useRef, useState, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
-import { Billboard } from "@react-three/drei";
+
 import * as THREE from "three";
 import type { MeshStandardMaterial } from "three";
 import { TreeData } from "@/lib/services/tree/types";
@@ -51,34 +51,51 @@ const seededRandom = (n: number) => {
 };
 
 /**
- * Simple billboard sprite for far LOD
+ * Simple low-poly 3D tree for far LOD (replaces flat billboard)
  */
 function TreeBillboard({ tier, height, canopyColorOverride, glowing }: { tier: import("@/lib/services/tree/types").TreeTier; height: number; canopyColorOverride?: string; glowing?: boolean }) {
   const canopyColor = canopyColorOverride ?? CANOPY_COLORS[tier];
   const trunkColor = TRUNK_COLORS[tier];
+  const tierConfig = getTierConfig(tier);
 
-  // Scale based on tree height
-  const scale = Math.max(2, height * 0.5);
-
-  return (
-    <Billboard>
-      {/* Canopy blob */}
-      <mesh>
-        <circleGeometry args={[scale * 0.75, 8]} />
+  // Tiny tiers: just a small sphere on the ground
+  if (tier === "seed" || tier === "sprout" || tier === "shrub") {
+    const r = Math.max(0.5, tierConfig.canopyRadius * 0.6);
+    return (
+      <mesh position={[0, r * 0.5, 0]}>
+        <icosahedronGeometry args={[r, 0]} />
         <meshStandardMaterial
           color={canopyColor}
-          transparent
-          opacity={0.8}
+          flatShading
           emissive={glowing ? canopyColor : "#000000"}
           emissiveIntensity={glowing ? 0.5 : 0}
         />
       </mesh>
-      {/* Trunk indicator */}
-      <mesh position={[0, -scale * 0.6, 0]}>
-        <circleGeometry args={[scale * 0.12, 6]} />
-        <meshBasicMaterial color={trunkColor} />
+    );
+  }
+
+  // Standard trees: cone canopy + thin trunk
+  const trunkH = height * 0.35;
+  const trunkR = Math.max(0.3, tierConfig.trunkRadius * 0.5);
+  const canopyH = height * 0.55;
+  const canopyR = Math.max(1.5, tierConfig.canopyRadius * 0.65);
+
+  return (
+    <group>
+      <mesh position={[0, trunkH / 2, 0]}>
+        <cylinderGeometry args={[trunkR * 0.6, trunkR, trunkH, 4]} />
+        <meshStandardMaterial color={trunkColor} flatShading />
       </mesh>
-    </Billboard>
+      <mesh position={[0, trunkH + canopyH * 0.4, 0]}>
+        <coneGeometry args={[canopyR, canopyH, 5]} />
+        <meshStandardMaterial
+          color={canopyColor}
+          flatShading
+          emissive={glowing ? canopyColor : "#000000"}
+          emissiveIntensity={glowing ? 0.5 : 0}
+        />
+      </mesh>
+    </group>
   );
 }
 

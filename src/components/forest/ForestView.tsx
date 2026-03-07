@@ -5,13 +5,16 @@
  * Client component that holds ForestScene + overlay UI + state management
  */
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { useTranslations } from "next-intl";
 import { TreeData } from "@/lib/services/tree/types";
 import { ForestScene } from "@/components/forest";
 import { StartupDrawer } from "@/components/detail/StartupDrawer";
 import { useForest } from "@/hooks/useForest";
 import { Loader2 } from "lucide-react";
+import LoadingScreen, { type LoadingStage } from "./LoadingScreen";
+
+let hasPlayedLoadingGlobal = false;
 
 // Category filter button component
 function CategoryFilter({
@@ -55,6 +58,11 @@ export function ForestView({
   const [selectedTree, setSelectedTree] = useState<TreeData | null>(null);
   const [flyMode, setFlyMode] = useState(false);
 
+  const skipLoading = useRef(hasPlayedLoadingGlobal);
+  const [loadingStage, setLoadingStage] = useState<LoadingStage>(
+    skipLoading.current ? "done" : "loading"
+  );
+
   const { trees, totalStartups, categories, isLoading, error } = useForest(
     selectedCategory
   );
@@ -83,6 +91,21 @@ export function ForestView({
     setSelectedTree(null);
   }, []);
 
+  // Loading screen: transition to "ready" after data arrives + brief delay
+  const hasData = displayTrees.length > 0;
+  useEffect(() => {
+    if (!hasData || skipLoading.current) return;
+    const timer = setTimeout(() => {
+      setLoadingStage((prev) => (prev === "loading" ? "ready" : prev));
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, [hasData]);
+
+  const handleLoadingComplete = useCallback(() => {
+    setLoadingStage("done");
+    hasPlayedLoadingGlobal = true;
+  }, []);
+
   // Press F to toggle fly mode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -99,28 +122,37 @@ export function ForestView({
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black">
+      {/* Loading Screen overlay */}
+      {!skipLoading.current && (
+        <LoadingScreen
+          stage={loadingStage}
+          onFadeComplete={handleLoadingComplete}
+        />
+      )}
+
       {/* 3D Canvas */}
-      {isLoading && displayTrees.length === 0 ? (
+      {displayTrees.length > 0 ? (
+        <ForestScene
+          trees={displayTrees}
+          onTreeClick={handleTreeClick}
+          flyMode={flyMode}
+          onExitFly={handleExitFly}
+          holdGrowth={loadingStage === "loading"}
+        />
+      ) : isLoading ? (
         <div className="flex h-full items-center justify-center">
           <div className="text-center">
             <Loader2 className="mx-auto mb-4 h-12 w-12 animate-spin text-green-500" />
             <p className="text-lg text-green-400">{t("loading")}</p>
           </div>
         </div>
-      ) : error && displayTrees.length === 0 ? (
+      ) : error ? (
         <div className="flex h-full items-center justify-center">
           <div className="rounded-lg bg-red-900/50 p-8 text-center">
             <p className="text-lg text-red-300">{error}</p>
           </div>
         </div>
-      ) : (
-        <ForestScene
-          trees={displayTrees}
-          onTreeClick={handleTreeClick}
-          flyMode={flyMode}
-          onExitFly={handleExitFly}
-        />
-      )}
+      ) : null}
 
       {/* Overlay UI */}
       <div className="pointer-events-none absolute inset-0">
