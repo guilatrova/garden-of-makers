@@ -554,11 +554,17 @@ export function ForestScene({ trees, onTreeClick, flyMode, onExitFly }: ForestSc
 
   const handleTreeClick = useCallback(
     (tree: TreeData) => {
+      if (flyMode) return;
       setSelectedTreeSlug(tree.slug);
       onTreeClick?.(tree);
     },
-    [onTreeClick]
+    [onTreeClick, flyMode]
   );
+
+  // Clear selected tree when entering fly mode
+  useEffect(() => {
+    if (flyMode) setSelectedTreeSlug(null);
+  }, [flyMode]);
 
   const handleIntroEnd = useCallback(() => {
     setIntroMode(false);

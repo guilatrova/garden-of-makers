@@ -5,7 +5,7 @@
  * Client component that holds ForestScene + overlay UI + state management
  */
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { TreeData } from "@/lib/services/tree/types";
 import { ForestScene } from "@/components/forest";
@@ -78,6 +78,25 @@ export function ForestView({
     setFlyMode(false);
   }, []);
 
+  const enterFlyMode = useCallback(() => {
+    setFlyMode(true);
+    setSelectedTree(null);
+  }, []);
+
+  // Press F to toggle fly mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "f" || e.key === "F") {
+        setFlyMode((prev) => {
+          if (!prev) setSelectedTree(null);
+          return !prev;
+        });
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black">
       {/* 3D Canvas */}
@@ -137,7 +156,7 @@ export function ForestView({
         {/* Bottom-left: Fly mode button */}
         <div className="pointer-events-auto absolute bottom-6 left-6">
           <button
-            onClick={() => setFlyMode(!flyMode)}
+            onClick={() => (flyMode ? setFlyMode(false) : enterFlyMode())}
             className={`rounded-lg border px-5 py-2.5 font-['Silkscreen'] text-sm font-bold shadow-lg transition-all ${
               flyMode
                 ? "border-green-400 bg-green-500 text-white"
@@ -152,8 +171,8 @@ export function ForestView({
         <div className="pointer-events-auto absolute bottom-6 left-1/2 -translate-x-1/2 rounded-lg border border-gray-700 bg-gray-900/90 px-6 py-3 shadow-xl backdrop-blur">
           <p className="text-center text-xs text-gray-400">
             {flyMode
-              ? "Mouse to steer. W/S or mouse Y to climb/descend. Shift = boost. ESC to exit."
-              : "Click & drag to orbit. Scroll to zoom. Click a tree for details."}
+              ? "Mouse to steer. W/S or mouse Y to climb/descend. Shift = boost. F or ESC to exit."
+              : "Click & drag to orbit. Scroll to zoom. Click a tree for details. F to fly."}
           </p>
         </div>
       </div>

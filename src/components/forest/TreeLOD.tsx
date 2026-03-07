@@ -55,18 +55,18 @@ function TreeBillboard({ tier, height }: { tier: import("@/lib/services/tree/typ
 
   return (
     <Billboard>
-      {/* Simple colored rectangle representing the tree */}
+      {/* Canopy blob */}
       <mesh>
-        <planeGeometry args={[scale, scale * 1.5]} />
-        <meshBasicMaterial 
-          color={canopyColor} 
-          transparent 
+        <circleGeometry args={[scale * 0.75, 8]} />
+        <meshBasicMaterial
+          color={canopyColor}
+          transparent
           opacity={0.8}
         />
       </mesh>
       {/* Trunk indicator */}
       <mesh position={[0, -scale * 0.6, 0]}>
-        <planeGeometry args={[scale * 0.2, scale * 0.4]} />
+        <circleGeometry args={[scale * 0.12, 6]} />
         <meshBasicMaterial color={trunkColor} />
       </mesh>
     </Billboard>
