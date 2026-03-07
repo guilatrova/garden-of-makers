@@ -7,14 +7,8 @@ import {
   ForestLayoutEngine,
   fibonacciSpiral,
   getDistance,
-  getTreeCanopyRadius,
-  hasPositionConflict,
-  isSpecialTree,
-  findValidPosition,
-  DEFAULT_LAYOUT_CONFIG,
 } from "../";
 import { TreeData, TreeTier } from "@/lib/services/tree/types";
-import { ZONE_CENTERS } from "@/lib/constants/categories";
 
 // Helper to create test tree data
 function createTestTree(
@@ -57,8 +51,8 @@ describe("ForestLayoutEngine", () => {
   });
 
   describe("fibonacciSpiral", () => {
-    it("should return center position for single tree", () => {
-      const result = fibonacciSpiral(0, 1, 80);
+    it("should return center position for index 0", () => {
+      const result = fibonacciSpiral(0, 10);
       expect(result.x).toBe(0);
       expect(result.z).toBe(0);
     });
@@ -66,24 +60,37 @@ describe("ForestLayoutEngine", () => {
     it("should distribute trees in spiral pattern", () => {
       const positions = [];
       for (let i = 0; i < 5; i++) {
-        positions.push(fibonacciSpiral(i, 5, 80));
+        positions.push(fibonacciSpiral(i, 10));
       }
 
-      // Each position should be different
+      // Each position should be different (except index 0 which is center)
       for (let i = 1; i < positions.length; i++) {
-        expect(positions[i].x).not.toBe(positions[0].x);
-        expect(positions[i].z).not.toBe(positions[0].z);
+        const hasDifferentPosition = positions.some(
+          (p, idx) => idx !== i && (p.x !== positions[i].x || p.z !== positions[i].z)
+        );
+        expect(hasDifferentPosition).toBe(true);
       }
     });
 
     it("should expand radius for larger indices", () => {
-      const pos1 = fibonacciSpiral(1, 10, 80);
-      const pos9 = fibonacciSpiral(9, 10, 80);
+      const pos1 = fibonacciSpiral(1, 10);
+      const pos9 = fibonacciSpiral(9, 10);
 
       const dist1 = Math.sqrt(pos1.x ** 2 + pos1.z ** 2);
       const dist9 = Math.sqrt(pos9.x ** 2 + pos9.z ** 2);
 
       expect(dist9).toBeGreaterThan(dist1);
+    });
+
+    it("should calculate radius based on lotSize * sqrt(index)", () => {
+      const lotSize = 10;
+      const index = 16;
+      const expectedRadius = lotSize * Math.sqrt(index); // 10 * 4 = 40
+
+      const result = fibonacciSpiral(index, lotSize);
+      const actualRadius = Math.sqrt(result.x ** 2 + result.z ** 2);
+
+      expect(actualRadius).toBeCloseTo(expectedRadius, 5);
     });
   });
 
@@ -101,207 +108,99 @@ describe("ForestLayoutEngine", () => {
     });
   });
 
-  describe("getTreeCanopyRadius", () => {
-    it("should return correct radius for seed tier", () => {
-      const tree = createTestTree("seed-tree", "seed", 0, "saas");
-      expect(getTreeCanopyRadius(tree)).toBe(0.2);
-    });
-
-    it("should return correct radius for world tier", () => {
-      const tree = createTestTree("world-tree", "world", 600_000_00, "saas");
-      expect(getTreeCanopyRadius(tree)).toBe(8.0);
-    });
-  });
-
-  describe("hasPositionConflict", () => {
-    it("should return false when no trees exist", () => {
-      const position = { x: 0, y: 0, z: 0 };
-      const tree = createTestTree("test", "young", 100_000, "saas");
-
-      expect(
-        hasPositionConflict(
-          position,
-          [],
-          getTreeCanopyRadius(tree),
-          DEFAULT_LAYOUT_CONFIG
-        )
-      ).toBe(false);
-    });
-
-    it("should detect conflict when trees are too close", () => {
-      const tree1 = {
-        ...createTestTree("tree1", "young", 100_000, "saas"),
-        position: { x: 0, y: 0, z: 0 },
-      };
-      const position = { x: 0.1, y: 0, z: 0 };
-
-      expect(
-        hasPositionConflict(
-          position,
-          [tree1],
-          getTreeCanopyRadius(tree1),
-          DEFAULT_LAYOUT_CONFIG
-        )
-      ).toBe(true);
-    });
-
-    it("should not detect conflict when trees are far apart", () => {
-      const tree1 = {
-        ...createTestTree("tree1", "young", 100_000, "saas"),
-        position: { x: 0, y: 0, z: 0 },
-      };
-      const position = { x: 100, y: 0, z: 100 };
-
-      expect(
-        hasPositionConflict(
-          position,
-          [tree1],
-          getTreeCanopyRadius(tree1),
-          DEFAULT_LAYOUT_CONFIG
-        )
-      ).toBe(false);
-    });
-  });
-
-  describe("isSpecialTree", () => {
-    it("should return true for ancient tier", () => {
-      expect(isSpecialTree("ancient")).toBe(true);
-    });
-
-    it("should return true for world tier", () => {
-      expect(isSpecialTree("world")).toBe(true);
-    });
-
-    it("should return false for other tiers", () => {
-      expect(isSpecialTree("seed")).toBe(false);
-      expect(isSpecialTree("sprout")).toBe(false);
-      expect(isSpecialTree("shrub")).toBe(false);
-      expect(isSpecialTree("young")).toBe(false);
-      expect(isSpecialTree("mature")).toBe(false);
-      expect(isSpecialTree("great")).toBe(false);
-    });
-  });
-
-  describe("findValidPosition", () => {
-    it("should return a position", () => {
-      const tree = createTestTree("test", "young", 100_000, "saas");
-      const zoneCenter = { x: 0, z: 0 };
-
-      const position = findValidPosition(
-        tree,
-        zoneCenter,
-        0,
-        1,
-        [],
-        DEFAULT_LAYOUT_CONFIG
-      );
-
-      expect(position.x).toBeDefined();
-      expect(position.z).toBeDefined();
-      expect(position.y).toBe(0);
-    });
-  });
-
   describe("positionTrees", () => {
     it("should return empty array for empty input", () => {
       const result = engine.positionTrees([]);
       expect(result).toEqual([]);
     });
 
-    it("should place single tree near zone center", () => {
+    it("should place single tree at origin", () => {
       const tree = createTestTree("single", "young", 100_000, "saas");
       const result = engine.positionTrees([tree]);
 
       expect(result).toHaveLength(1);
-      // SaaS maps to central zone - tree should be near center (within zone radius)
-      expect(Math.abs(result[0].position.x - ZONE_CENTERS.central.x)).toBeLessThan(10);
-      expect(Math.abs(result[0].position.z - ZONE_CENTERS.central.z)).toBeLessThan(10);
+      expect(result[0].position.x).toBe(0);
+      expect(result[0].position.y).toBe(0);
+      expect(result[0].position.z).toBe(0);
     });
 
-    it("should group trees by category into correct zones", () => {
-      const aiTree = createTestTree("ai-1", "young", 100_000, "ai");
-      const saasTree = createTestTree("saas-1", "young", 100_000, "saas");
-      const devTree = createTestTree("dev-1", "young", 100_000, "developer-tools");
+    it("should place 50 trees within radius ~70u (lotSize * sqrt(49) ≈ 70)", () => {
+      const trees: TreeData[] = [];
+      for (let i = 0; i < 50; i++) {
+        trees.push(createTestTree(`tree-${i}`, "young", 100_000 + i * 1000, "saas"));
+      }
 
-      const result = engine.positionTrees([aiTree, saasTree, devTree]);
+      const result = engine.positionTrees(trees);
+      expect(result).toHaveLength(50);
 
-      expect(result).toHaveLength(3);
+      // Find max radius (excluding the tree at origin)
+      let maxRadius = 0;
+      for (const tree of result) {
+        const radius = Math.sqrt(tree.position.x ** 2 + tree.position.z ** 2);
+        maxRadius = Math.max(maxRadius, radius);
+      }
 
-      const aiResult = result.find((t) => t.slug === "ai-1");
-      const saasResult = result.find((t) => t.slug === "saas-1");
-      const devResult = result.find((t) => t.slug === "dev-1");
-
-      // AI -> northeast, SaaS -> central, DevTools -> east
-      // Trees should be near their zone centers (within zone radius)
-      expect(Math.abs(aiResult!.position.x - ZONE_CENTERS.northeast.x)).toBeLessThan(10);
-      expect(Math.abs(aiResult!.position.z - ZONE_CENTERS.northeast.z)).toBeLessThan(10);
-
-      expect(Math.abs(saasResult!.position.x - ZONE_CENTERS.central.x)).toBeLessThan(10);
-      expect(Math.abs(saasResult!.position.z - ZONE_CENTERS.central.z)).toBeLessThan(10);
-
-      expect(Math.abs(devResult!.position.x - ZONE_CENTERS.east.x)).toBeLessThan(10);
-      expect(Math.abs(devResult!.position.z - ZONE_CENTERS.east.z)).toBeLessThan(10);
+      // lotSize * sqrt(49) = 10 * 7 = 70, allow some tolerance
+      expect(maxRadius).toBeLessThan(80);
     });
 
-    it("should place ancient trees at world center regardless of category", () => {
-      const ancientAI = createTestTree("ancient-ai", "ancient", 200_000_00, "ai");
-      const ancientSaaS = createTestTree("ancient-saas", "ancient", 300_000_00, "saas");
+    it("should place 5000 trees within radius ~710u (lotSize * sqrt(4999) ≈ 707)", () => {
+      const trees: TreeData[] = [];
+      for (let i = 0; i < 5000; i++) {
+        trees.push(createTestTree(`tree-${i}`, "young", 100_000 + i * 100, "saas"));
+      }
 
-      // Only test with ancient trees (no normal tree) to avoid spacing pushing them apart
-      const result = engine.positionTrees([ancientAI, ancientSaaS]);
+      const result = engine.positionTrees(trees);
+      expect(result).toHaveLength(5000);
 
-      const ancientAIResult = result.find((t) => t.slug === "ancient-ai");
-      const ancientSaaSResult = result.find((t) => t.slug === "ancient-saas");
+      // Find max radius
+      let maxRadius = 0;
+      for (const tree of result) {
+        const radius = Math.sqrt(tree.position.x ** 2 + tree.position.z ** 2);
+        maxRadius = Math.max(maxRadius, radius);
+      }
 
-      // Ancient trees should be near center (within special tree area)
-      // Note: spacing requirements may push them apart from exact center
-      expect(Math.abs(ancientAIResult!.position.x - ZONE_CENTERS.center.x)).toBeLessThan(30);
-      expect(Math.abs(ancientAIResult!.position.z - ZONE_CENTERS.center.z)).toBeLessThan(30);
-
-      expect(Math.abs(ancientSaaSResult!.position.x - ZONE_CENTERS.center.x)).toBeLessThan(30);
-      expect(Math.abs(ancientSaaSResult!.position.z - ZONE_CENTERS.center.z)).toBeLessThan(30);
+      // lotSize * sqrt(4999) ≈ 10 * 70.7 ≈ 707, allow some tolerance
+      expect(maxRadius).toBeLessThan(750);
     });
 
-    it("should place world trees at world center regardless of category", () => {
-      const worldTree = createTestTree("world-ai", "world", 600_000_00, "ai");
-      const result = engine.positionTrees([worldTree]);
-
-      // World trees should be near center (within special tree area)
-      expect(Math.abs(result[0].position.x - ZONE_CENTERS.center.x)).toBeLessThan(15);
-      expect(Math.abs(result[0].position.z - ZONE_CENTERS.center.z)).toBeLessThan(15);
-    });
-
-    it("should sort trees by MRR descending within zone", () => {
+    it("should sort trees by MRR descending - first tree has highest MRR", () => {
       const lowMrr = createTestTree("low", "young", 100_000, "saas");
       const highMrr = createTestTree("high", "mature", 1_000_000, "saas");
       const midMrr = createTestTree("mid", "young", 500_000, "saas");
 
       const result = engine.positionTrees([lowMrr, highMrr, midMrr]);
 
-      // Higher MRR should be closer to center (lower index in fibonacci spiral)
-      const highResult = result.find((t) => t.slug === "high");
-      const midResult = result.find((t) => t.slug === "mid");
-      const lowResult = result.find((t) => t.slug === "low");
+      // Highest MRR tree should be at origin (index 0)
+      expect(result[0].slug).toBe("high");
+      expect(result[0].position.x).toBe(0);
+      expect(result[0].position.z).toBe(0);
 
-      // Calculate distance from center
-      const highDist = Math.sqrt(
-        (highResult!.position.x - ZONE_CENTERS.central.x) ** 2 +
-          (highResult!.position.z - ZONE_CENTERS.central.z) ** 2
-      );
-      const midDist = Math.sqrt(
-        (midResult!.position.x - ZONE_CENTERS.central.x) ** 2 +
-          (midResult!.position.z - ZONE_CENTERS.central.z) ** 2
-      );
-      const lowDist = Math.sqrt(
-        (lowResult!.position.x - ZONE_CENTERS.central.x) ** 2 +
-          (lowResult!.position.z - ZONE_CENTERS.central.z) ** 2
-      );
+      // Second highest should be at index 1
+      expect(result[1].slug).toBe("mid");
 
-      expect(highDist).toBeLessThanOrEqual(midDist);
-      expect(midDist).toBeLessThanOrEqual(lowDist);
+      // Lowest should be at index 2
+      expect(result[2].slug).toBe("low");
     });
 
-    it("should ensure no two trees overlap", () => {
+    it("should be deterministic - same input produces same positions", () => {
+      const trees: TreeData[] = [];
+      for (let i = 0; i < 10; i++) {
+        trees.push(createTestTree(`tree-${i}`, "young", 100_000 + i * 1000, "saas"));
+      }
+
+      const result1 = engine.positionTrees(trees);
+      const result2 = engine.positionTrees(trees);
+
+      expect(result1).toHaveLength(result2.length);
+      for (let i = 0; i < result1.length; i++) {
+        expect(result1[i].position.x).toBe(result2[i].position.x);
+        expect(result1[i].position.y).toBe(result2[i].position.y);
+        expect(result1[i].position.z).toBe(result2[i].position.z);
+      }
+    });
+
+    it("should not place two trees at exact same position (for count > 1)", () => {
       const trees: TreeData[] = [];
       for (let i = 0; i < 10; i++) {
         trees.push(createTestTree(`tree-${i}`, "young", 100_000 + i * 1000, "saas"));
@@ -309,74 +208,87 @@ describe("ForestLayoutEngine", () => {
 
       const result = engine.positionTrees(trees);
 
-      // Check all pairs for overlap
+      // Check all pairs for duplicate positions
       for (let i = 0; i < result.length; i++) {
         for (let j = i + 1; j < result.length; j++) {
-          const tree1 = result[i];
-          const tree2 = result[j];
-
-          const distance = getDistance(tree1.position, tree2.position);
-          const minDistance =
-            Math.max(
-              getTreeCanopyRadius(tree1),
-              getTreeCanopyRadius(tree2)
-            ) * DEFAULT_LAYOUT_CONFIG.spacingMultiplier;
-
-          expect(distance).toBeGreaterThanOrEqual(minDistance * 0.9); // Allow 10% tolerance for jitter
+          const sameX = result[i].position.x === result[j].position.x;
+          const sameZ = result[i].position.z === result[j].position.z;
+          expect(sameX && sameZ).toBe(false);
         }
       }
     });
 
-    it("should handle null category by placing in southwest zone", () => {
-      const noCategoryTree = createTestTree("no-cat", "young", 100_000, null);
-      const result = engine.positionTrees([noCategoryTree]);
+    it("should use fallback to revenueLast30DaysCents when mrrCents is missing", () => {
+      const treeWithMrr = createTestTree("with-mrr", "young", 500_000, "saas");
+      
+      const treeWithoutMrr: TreeData = {
+        ...createTestTree("no-mrr", "young", 0, "saas"),
+        mrrCents: null as unknown as undefined,
+        revenueLast30DaysCents: 1_000_000, // Higher than 500_000
+      };
 
-      // Trees with null category should be near southwest zone center
-      expect(Math.abs(result[0].position.x - ZONE_CENTERS.southwest.x)).toBeLessThan(10);
-      expect(Math.abs(result[0].position.z - ZONE_CENTERS.southwest.z)).toBeLessThan(10);
+      const result = engine.positionTrees([treeWithMrr, treeWithoutMrr]);
+
+      // Tree without MRR but with higher revenueLast30Days should be first
+      expect(result[0].slug).toBe("no-mrr");
+      expect(result[1].slug).toBe("with-mrr");
     });
 
-    it("should handle unknown category by placing in southwest zone", () => {
-      const unknownCategoryTree = createTestTree("unknown-cat", "young", 100_000, "unknown-category");
-      const result = engine.positionTrees([unknownCategoryTree]);
+    it("should handle mixed categories without zone-based positioning", () => {
+      const aiTree = createTestTree("ai-1", "young", 100_000, "ai");
+      const saasTree = createTestTree("saas-1", "young", 200_000, "saas");
+      const devTree = createTestTree("dev-1", "young", 150_000, "developer-tools");
 
-      // Trees with unknown category should be near southwest zone center
-      expect(Math.abs(result[0].position.x - ZONE_CENTERS.southwest.x)).toBeLessThan(10);
-      expect(Math.abs(result[0].position.z - ZONE_CENTERS.southwest.z)).toBeLessThan(10);
+      const result = engine.positionTrees([aiTree, saasTree, devTree]);
+
+      expect(result).toHaveLength(3);
+
+      // Should be sorted by MRR, not grouped by zone
+      expect(result[0].slug).toBe("saas-1"); // 200k
+      expect(result[1].slug).toBe("dev-1");  // 150k
+      expect(result[2].slug).toBe("ai-1");  // 100k
+
+      // All should be positioned using fibonacci spiral from origin
+      expect(result[0].position.x).toBe(0);
+      expect(result[0].position.z).toBe(0);
     });
 
-    it("should respect custom config", () => {
-      const customEngine = new ForestLayoutEngine({
-        spacingMultiplier: 5,
-        zoneRadius: 100,
-      });
+    it("should respect custom lotSize config", () => {
+      const customEngine = new ForestLayoutEngine({ lotSize: 20 });
 
-      const tree = createTestTree("test", "young", 100_000, "saas");
-      const result = customEngine.positionTrees([tree]);
+      const trees: TreeData[] = [];
+      for (let i = 0; i < 10; i++) {
+        trees.push(createTestTree(`tree-${i}`, "young", 100_000, "saas"));
+      }
 
-      expect(result).toHaveLength(1);
-      expect(customEngine.getConfig().spacingMultiplier).toBe(5);
-      expect(customEngine.getConfig().zoneRadius).toBe(100);
+      const result = customEngine.positionTrees(trees);
+
+      // With lotSize 20, the furthest tree should be roughly twice as far
+      let maxRadius = 0;
+      for (const tree of result) {
+        const radius = Math.sqrt(tree.position.x ** 2 + tree.position.z ** 2);
+        maxRadius = Math.max(maxRadius, radius);
+      }
+
+      // With lotSize 20, max radius should be ~20 * sqrt(9) = 60
+      expect(maxRadius).toBeGreaterThan(50);
     });
   });
 
   describe("config management", () => {
     it("should get default config", () => {
       const config = engine.getConfig();
-      expect(config.spacingMultiplier).toBe(2.5);
-      expect(config.zoneRadius).toBe(80);
-      expect(config.centerSpecialTrees).toBe(true);
+      expect(config.lotSize).toBe(10);
     });
 
     it("should update config", () => {
-      engine.setConfig({ spacingMultiplier: 3 });
-      expect(engine.getConfig().spacingMultiplier).toBe(3);
+      engine.setConfig({ lotSize: 15 });
+      expect(engine.getConfig().lotSize).toBe(15);
     });
 
     it("should merge partial config updates", () => {
-      engine.setConfig({ zoneRadius: 120 });
-      expect(engine.getConfig().spacingMultiplier).toBe(2.5); // unchanged
-      expect(engine.getConfig().zoneRadius).toBe(120);
+      engine.setConfig({ lotSize: 20 });
+      expect(engine.getConfig().lotSize).toBe(20);
     });
   });
 });
