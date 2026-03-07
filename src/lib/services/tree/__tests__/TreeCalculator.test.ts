@@ -7,12 +7,39 @@
 import { describe, it, expect } from "vitest";
 import {
   getTier,
+  getEffectiveMRR,
   getFruitBreakdown,
   getTierConfig,
   calculateTotalCustomers,
 } from "../TreeCalculator";
 import { TIER_CONFIGS } from "@/lib/constants/tiers";
 import type { TreeTier } from "../types";
+
+describe("getEffectiveMRR", () => {
+  // Test: Returns MRR when MRR > 0
+  it("should return MRR when MRR is greater than 0", () => {
+    expect(getEffectiveMRR(10000, 5000)).toBe(10000);
+    expect(getEffectiveMRR(5000000, 0)).toBe(5000000);
+    expect(getEffectiveMRR(1, 9999999)).toBe(1);
+  });
+
+  // Test: Falls back to revenueLast30Days when MRR is 0
+  it("should return revenueLast30Days when MRR is 0", () => {
+    expect(getEffectiveMRR(0, 5000)).toBe(5000);
+    expect(getEffectiveMRR(0, 1000000)).toBe(1000000);
+  });
+
+  // Test: Returns 0 when both are 0
+  it("should return 0 when both MRR and revenueLast30Days are 0", () => {
+    expect(getEffectiveMRR(0, 0)).toBe(0);
+  });
+
+  // Test: Gumroad scenario - $71k revenue, $0 MRR
+  it("should return 30-day revenue for Gumroad-like scenario (MRR=0, revenue=71k)", () => {
+    const gumroadRevenueCents = 7100000; // $71,000
+    expect(getEffectiveMRR(0, gumroadRevenueCents)).toBe(gumroadRevenueCents);
+  });
+});
 
 describe("getTier", () => {
   // Test 1: Seed tier (0 MRR)
@@ -88,6 +115,37 @@ describe("getTier", () => {
   // Test 15: World tier - large value
   it("should return 'world' for $1M+ (100000000 cents) MRR", () => {
     expect(getTier(100000000)).toBe("world");
+  });
+
+  // NEW TESTS: Fallback to 30-day revenue
+  // Test: MRR=0 with revenue should NOT be seed tier
+  it("should NOT return 'seed' when MRR=0 but 30-day revenue > 0", () => {
+    expect(getTier(0, 5000)).not.toBe("seed");
+    expect(getTier(0, 100000)).not.toBe("seed");
+  });
+
+  // Test: Gumroad scenario - $71k revenue, $0 MRR should be 'great' tier
+  it("should return 'great' for Gumroad-like scenario (MRR=0, revenue=$71k)", () => {
+    const gumroadRevenueCents = 7100000; // $71,000
+    expect(getTier(0, gumroadRevenueCents)).toBe("great");
+  });
+
+  // Test: MRR=0, revenue=$500 should be shrub (>$100 is shrub tier)
+  it("should return 'shrub' when MRR=0 but revenue=$500", () => {
+    expect(getTier(0, 50000)).toBe("shrub");
+  });
+
+  // Test: MRR=0, revenue=$5k should be young
+  it("should return 'young' when MRR=0 but revenue=$5k", () => {
+    expect(getTier(0, 500000)).toBe("young");
+  });
+
+  // Test: MRR takes precedence over revenue
+  it("should use MRR when both MRR and revenue are provided", () => {
+    // MRR says sprout ($50), revenue says great ($75k) - should use MRR
+    expect(getTier(5000, 7500000)).toBe("sprout");
+    // MRR says world ($1M), revenue says seed ($0) - should use MRR
+    expect(getTier(100000000, 0)).toBe("world");
   });
 });
 

@@ -104,12 +104,12 @@ describe("ForestLayoutEngine", () => {
   describe("getTreeCanopyRadius", () => {
     it("should return correct radius for seed tier", () => {
       const tree = createTestTree("seed-tree", "seed", 0, "saas");
-      expect(getTreeCanopyRadius(tree)).toBe(0.05);
+      expect(getTreeCanopyRadius(tree)).toBe(0.2);
     });
 
     it("should return correct radius for world tier", () => {
       const tree = createTestTree("world-tree", "world", 600_000_00, "saas");
-      expect(getTreeCanopyRadius(tree)).toBe(6.0);
+      expect(getTreeCanopyRadius(tree)).toBe(8.0);
     });
   });
 
