@@ -112,10 +112,10 @@ export function ForestView({
             isActive={selectedCategory === undefined}
             onClick={() => setSelectedCategory(undefined)}
           />
-          {displayCategories.slice(0, 6).map((category) => (
+          {displayCategories.slice(0, 8).map((category) => (
             <CategoryFilter
               key={category}
-              label={t(`filters.${category}`) || category}
+              label={category}
               isActive={selectedCategory === category}
               onClick={() => setSelectedCategory(category)}
             />
