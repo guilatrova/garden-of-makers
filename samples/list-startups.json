@@ -1,0 +1,91 @@
+{
+    "data": [
+        {
+            "name": "Gumroad",
+            "slug": "gumroad",
+            "url": "https://trustmrr.com/startup/gumroad",
+            "icon": "https://d21oz30g4w22sz.cloudfront.net/logos/gumroad-113809f2-c628-4d3a-8adb-fbdc414784d7.png",
+            "description": "Go from 0 to $1",
+            "website": "https://gumroad.com",
+            "country": "US",
+            "foundedDate": "2011-11-05T20:37:14.000Z",
+            "category": "E-commerce",
+            "paymentProvider": "stripe",
+            "targetAudience": null,
+            "revenue": {
+                "last30Days": 7143937.999999995,
+                "mrr": 0,
+                "total": 878595860.5199997
+            },
+            "customers": 0,
+            "activeSubscriptions": 0,
+            "askingPrice": null,
+            "profitMarginLast30Days": null,
+            "growth30d": null,
+            "multiple": null,
+            "onSale": false,
+            "firstListedForSaleAt": null,
+            "xHandle": "shl"
+        },
+        {
+            "name": "Stan",
+            "slug": "stan",
+            "url": "https://trustmrr.com/startup/stan",
+            "icon": "https://files.stripe.com/links/MDB8YWNjdF8xTXlnNkdDY0N2cGd5d1RufGZsX2xpdmVfUDcwUmxUUjZuUFR0RDhrS2ZpMEI3bkZN00QXGw5NKb",
+            "description": "Stan enables people to make living and work for themselves.",
+            "website": "https://stan.store",
+            "country": "US",
+            "foundedDate": "2023-04-19T18:51:28.000Z",
+            "category": "Content Creation",
+            "paymentProvider": "stripe",
+            "targetAudience": "B2C",
+            "revenue": {
+                "last30Days": 3042793.386534108,
+                "mrr": 3501730.91,
+                "total": 72410818.17329413
+            },
+            "customers": 0,
+            "activeSubscriptions": 99174,
+            "askingPrice": null,
+            "profitMarginLast30Days": null,
+            "growth30d": 10.640690388474676,
+            "multiple": null,
+            "onSale": false,
+            "firstListedForSaleAt": null,
+            "xHandle": "vitddnv"
+        },
+        {
+            "name": "easytools",
+            "slug": "easytools-sp-z-o-o",
+            "url": "https://trustmrr.com/startup/easytools-sp-z-o-o",
+            "icon": "https://files.stripe.com/links/MDB8YWNjdF8xSXIxTDRFbnRqdUdOYURHfGZsX2xpdmVfYTBOWjN0OXBsUGFpZklDOVBZMHJEUVBW00tG23D7uD",
+            "description": "Sell digital products easier than ever before",
+            "website": "https://easycart.pl",
+            "country": "PL",
+            "foundedDate": "2021-05-14T13:46:02.000Z",
+            "category": "E-commerce",
+            "paymentProvider": "stripe",
+            "targetAudience": null,
+            "revenue": {
+                "last30Days": 2703570.4649458947,
+                "mrr": 0,
+                "total": 82107087.16467215
+            },
+            "customers": 0,
+            "activeSubscriptions": 0,
+            "askingPrice": null,
+            "profitMarginLast30Days": null,
+            "growth30d": null,
+            "multiple": null,
+            "onSale": false,
+            "firstListedForSaleAt": null,
+            "xHandle": "greg_rog"
+        }
+    ],
+    "meta": {
+        "total": 4948,
+        "page": 1,
+        "limit": 3,
+        "hasMore": true
+    }
+}
