@@ -60,6 +60,7 @@
     "products": "{count} products",
     "followers": "{count} followers",
     "gardenSize": {
+      "gardenSize": "Garden Size",
       "small": "Small Garden",
       "medium": "Garden",
       "large": "Large Garden",

@@ -60,6 +60,7 @@
     "products": "{count} produtos",
     "followers": "{count} seguidores",
     "gardenSize": {
+      "gardenSize": "Tamanho do Jardim",
       "small": "Jardim Pequeno",
       "medium": "Jardim",
       "large": "Jardim Grande",
