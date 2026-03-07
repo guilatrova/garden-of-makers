@@ -12,7 +12,7 @@ export function Terrain() {
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
         <planeGeometry args={[2000, 2000]} />
         <meshStandardMaterial
-          color="#4CAF50"
+          color="#6B8E23"
           roughness={0.9}
           metalness={0.1}
         />

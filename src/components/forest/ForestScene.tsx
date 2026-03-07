@@ -41,7 +41,7 @@ function Ground() {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]} receiveShadow>
       <planeGeometry args={[2000, 2000]} />
-      <meshStandardMaterial color="#1a1a2e" roughness={0.9} />
+      <meshStandardMaterial color="#4A3728" roughness={0.9} />
     </mesh>
   );
 }
@@ -52,7 +52,7 @@ function Ground() {
 function GridOverlay() {
   return (
     <gridHelper
-      args={[2000, 200, "#2a2a4e", "#222244"]}
+      args={[2000, 200, "#5C4A3A", "#503E30"]}
       position={[0, 0.01, 0]}
     />
   );
