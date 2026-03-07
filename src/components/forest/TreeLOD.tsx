@@ -116,10 +116,12 @@ function SimplifiedTree({ data, canopyColorOverride, glowing }: { data: TreeData
     }
   });
 
+  const isConeTier = data.tier === "young" || data.tier === "mature" || data.tier === "great" || data.tier === "ancient" || data.tier === "world";
   const trunkHeight = height * 0.6;
   const trunkY = trunkHeight / 2;
   const trunkTop = trunkHeight;
   const canopyY = trunkTop + tierConfig.canopyRadius * 0.5;
+  const coneHeight = height * 0.55;
 
   // Don't render for seed/sprout/shrub
   if (data.tier === "seed" || data.tier === "sprout" || data.tier === "shrub") {
@@ -147,8 +149,12 @@ function SimplifiedTree({ data, canopyColorOverride, glowing }: { data: TreeData
       </mesh>
 
       {/* Simple canopy */}
-      <mesh position={[0, canopyY, 0]}>
-        <icosahedronGeometry args={[tierConfig.canopyRadius, 0]} />
+      <mesh position={[0, isConeTier ? trunkTop + coneHeight * 0.45 : canopyY, 0]}>
+        {isConeTier ? (
+          <coneGeometry args={[tierConfig.canopyRadius, coneHeight, 5]} />
+        ) : (
+          <icosahedronGeometry args={[tierConfig.canopyRadius, 0]} />
+        )}
         <meshStandardMaterial ref={canopyMatRef} color={canopyColor} flatShading emissive={glowing ? canopyColor : "#000000"} emissiveIntensity={glowing ? 0.3 : 0} />
       </mesh>
     </group>
@@ -184,10 +190,12 @@ function FullTree({
     }
   });
 
+  const isConeTier = data.tier === "young" || data.tier === "mature" || data.tier === "great" || data.tier === "ancient" || data.tier === "world";
   const trunkHeight = height * 0.6;
   const trunkY = trunkHeight / 2;
   const trunkTop = trunkHeight;
   const canopyY = trunkTop + tierConfig.canopyRadius * 0.5;
+  const coneHeight = height * 0.55;
 
   // Generate deterministic leaf positions
   const leafPositions = useMemo(() => {
@@ -265,13 +273,17 @@ function FullTree({
       </mesh>
 
       {/* Canopy */}
-      <mesh position={[0, canopyY, 0]}>
-        <icosahedronGeometry
-          args={[
-            tierConfig.canopyRadius,
-            data.tier === "world" || data.tier === "ancient" ? 2 : 1,
-          ]}
-        />
+      <mesh position={[0, isConeTier ? trunkTop + coneHeight * 0.45 : canopyY, 0]}>
+        {isConeTier ? (
+          <coneGeometry args={[tierConfig.canopyRadius, coneHeight, data.tier === "world" || data.tier === "ancient" ? 8 : 6]} />
+        ) : (
+          <icosahedronGeometry
+            args={[
+              tierConfig.canopyRadius,
+              data.tier === "world" || data.tier === "ancient" ? 2 : 1,
+            ]}
+          />
+        )}
         <meshStandardMaterial ref={canopyMatRef} color={canopyColor} flatShading roughness={0.8} emissive={glowing ? canopyColor : "#000000"} emissiveIntensity={glowing ? 0.3 : 0} />
       </mesh>
 
@@ -279,7 +291,8 @@ function FullTree({
       <FruitCluster
         fruits={data.fruits}
         canopyRadius={tierConfig.canopyRadius}
-        canopyHeight={canopyY}
+        canopyHeight={isConeTier ? trunkTop + coneHeight * 0.45 : canopyY}
+        coneHeight={isConeTier ? coneHeight : undefined}
       />
 
       {/* Label */}
@@ -287,7 +300,7 @@ function FullTree({
         <TreeLabel
           data={data}
           visible={true}
-          position={[0, canopyY + tierConfig.canopyRadius + 2, 0]}
+          position={[0, (isConeTier ? trunkTop + coneHeight * 0.95 : canopyY + tierConfig.canopyRadius) + 2, 0]}
         />
       )}
 
