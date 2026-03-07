@@ -9,6 +9,7 @@ import { TreeData } from "@/lib/services/tree/types";
 import { getCategoryDisplayName, getCategoryColor } from "@/lib/constants/categories";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
+import { useEffect } from "react";
 import { X, ExternalLink, Twitter } from "lucide-react";
 
 interface StartupDrawerProps {
@@ -118,6 +119,15 @@ function FruitBreakdown({ fruits }: { fruits: TreeData["fruits"] }) {
 
 export function StartupDrawer({ startup, onClose }: StartupDrawerProps) {
   const t = useTranslations("drawer");
+
+  useEffect(() => {
+    if (!startup) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [startup, onClose]);
 
   if (!startup) return null;
 
