@@ -428,12 +428,86 @@ function FlightMode({ onExit }: { onExit: () => void }) {
 
   return (
     <group ref={birdRef}>
-      {/* Simple bird/leaf shape */}
-      <mesh rotation={[0, 0, 0]}>
-        <coneGeometry args={[1.5, 4, 4]} />
-        <meshStandardMaterial color="#4ade80" flatShading />
+      <group scale={[3, 3, 3]}>
+        <AirplaneMesh />
+      </group>
+      <pointLight position={[0, -2, 0]} color="#f0c870" intensity={15} distance={60} />
+      <pointLight position={[0, 3, -4]} color="#ffffff" intensity={5} distance={30} />
+    </group>
+  );
+}
+
+function AirplaneMesh() {
+  const propRef = useRef<THREE.Group>(null);
+
+  useFrame((_, delta) => {
+    if (propRef.current) propRef.current.rotation.z += delta * 30;
+  });
+
+  return (
+    <group>
+      {/* Fuselage */}
+      <mesh>
+        <boxGeometry args={[1.2, 0.9, 5]} />
+        <meshStandardMaterial color="#e0e0e0" emissive="#aaa" emissiveIntensity={0.4} />
       </mesh>
-      <pointLight position={[0, -1, 0]} color="#4ade80" intensity={10} distance={30} />
+      {/* Nose taper */}
+      <mesh position={[0, 0, -3]}>
+        <boxGeometry args={[0.8, 0.6, 1.2]} />
+        <meshStandardMaterial color="#ccc" emissive="#999" emissiveIntensity={0.3} />
+      </mesh>
+      {/* Nose tip */}
+      <mesh position={[0, 0, -3.7]}>
+        <boxGeometry args={[0.5, 0.4, 0.5]} />
+        <meshStandardMaterial color="#bbb" emissive="#888" emissiveIntensity={0.3} />
+      </mesh>
+      {/* Cockpit glass */}
+      <mesh position={[0, 0.55, -1.2]}>
+        <boxGeometry args={[0.7, 0.35, 1]} />
+        <meshStandardMaterial color="#3399dd" emissive="#2277bb" emissiveIntensity={0.8} />
+      </mesh>
+      {/* Main wings */}
+      <mesh position={[0, -0.1, 0]}>
+        <boxGeometry args={[8, 0.12, 2]} />
+        <meshStandardMaterial color="#d8d8d8" emissive="#999" emissiveIntensity={0.3} />
+      </mesh>
+      {/* Wing tips */}
+      <mesh position={[-4.2, 0.15, 0.3]}>
+        <boxGeometry args={[0.6, 0.5, 0.8]} />
+        <meshStandardMaterial color="#4ade80" emissive="#22c55e" emissiveIntensity={0.5} />
+      </mesh>
+      <mesh position={[4.2, 0.15, 0.3]}>
+        <boxGeometry args={[0.6, 0.5, 0.8]} />
+        <meshStandardMaterial color="#4ade80" emissive="#22c55e" emissiveIntensity={0.5} />
+      </mesh>
+      {/* Tail vertical stabilizer */}
+      <mesh position={[0, 0.9, 2.4]}>
+        <boxGeometry args={[0.12, 1.3, 1]} />
+        <meshStandardMaterial color="#4ade80" emissive="#22c55e" emissiveIntensity={0.5} />
+      </mesh>
+      {/* Tail horizontal stabilizers */}
+      <mesh position={[0, 0.35, 2.4]}>
+        <boxGeometry args={[3, 0.1, 0.8]} />
+        <meshStandardMaterial color="#d8d8d8" emissive="#999" emissiveIntensity={0.3} />
+      </mesh>
+      {/* Propeller hub */}
+      <mesh position={[0, 0, -4]}>
+        <boxGeometry args={[0.3, 0.3, 0.2]} />
+        <meshStandardMaterial color="#555" emissive="#333" emissiveIntensity={0.3} />
+      </mesh>
+      {/* Spinning propeller */}
+      <group ref={propRef} position={[0, 0, -4.1]}>
+        <mesh>
+          <boxGeometry args={[3, 0.25, 0.06]} />
+          <meshStandardMaterial color="#666" emissive="#555" emissiveIntensity={0.4} />
+        </mesh>
+        <mesh rotation={[0, 0, Math.PI / 2]}>
+          <boxGeometry args={[3, 0.25, 0.06]} />
+          <meshStandardMaterial color="#666" emissive="#555" emissiveIntensity={0.4} />
+        </mesh>
+      </group>
+      {/* Engine glow */}
+      <pointLight position={[0, 0, 2.8]} color="#ff8844" intensity={3} distance={10} />
     </group>
   );
 }
