@@ -160,11 +160,20 @@ export function StartupDrawer({ startup, onClose }: StartupDrawerProps) {
 
           {/* Content */}
           <div className="flex-1 overflow-y-auto p-6 space-y-6">
-            {/* MRR */}
-            <div>
-              <div className="text-sm text-gray-400">{t("mrr")}</div>
-              <div className="text-3xl font-bold text-green-400">
-                {formatMRR(startup.mrrCents)}
+            {/* MRR | Revenue (30d) */}
+            <div className="flex items-baseline gap-3">
+              <div>
+                <div className="text-sm text-gray-400">{t("mrr")}</div>
+                <div className="text-3xl font-bold text-green-400">
+                  {formatMRR(startup.mrrCents)}
+                </div>
+              </div>
+              <div className="text-3xl font-bold text-gray-600">|</div>
+              <div>
+                <div className="text-sm text-gray-400">{t("revenue")}</div>
+                <div className="text-3xl font-bold text-green-400">
+                  {formatRevenue(startup.revenueLast30DaysCents)}
+                </div>
               </div>
             </div>
 
@@ -184,14 +193,6 @@ export function StartupDrawer({ startup, onClose }: StartupDrawerProps) {
                 }`}
               >
                 {growth.text}
-              </div>
-            </div>
-
-            {/* Revenue (30d) */}
-            <div>
-              <div className="text-sm text-gray-400">{t("revenue")}</div>
-              <div className="text-lg font-semibold text-white">
-                {formatRevenue(startup.revenueLast30DaysCents)}
               </div>
             </div>
 
