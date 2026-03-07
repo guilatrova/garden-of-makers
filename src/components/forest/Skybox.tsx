@@ -29,6 +29,9 @@ export function Skybox({ timeOfDay = 12, shadows = true }: SkyboxProps) {
 
   return (
     <>
+      {/* Scene background color (light blue sky) */}
+      <color attach="background" args={["#4A90D9"]} />
+
       {/* Sky */}
       <Sky
         distance={450000}
