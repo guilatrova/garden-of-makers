@@ -235,7 +235,7 @@ export function StartupDrawer({ startup, onClose }: StartupDrawerProps) {
             <div className="space-y-3 pt-4">
               {startup.slug && (
                 <a
-                  href={`https://trustmrr.com/startups/${startup.slug}`}
+                  href={`https://trustmrr.com/startup/${startup.slug}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 rounded-lg bg-blue-600 px-4 py-3 text-white hover:bg-blue-700 transition-colors"

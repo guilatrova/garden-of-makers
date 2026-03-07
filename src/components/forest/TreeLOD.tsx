@@ -166,7 +166,7 @@ function FullTree({
           <sphereGeometry args={[tierConfig.canopyRadius, 4, 3]} />
           <meshStandardMaterial color={trunkColor} flatShading />
         </mesh>
-        {data.onSale && <ForSaleSign position={[tierConfig.canopyRadius, 0, 0]} />}
+        {data.onSale && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPriceCents={data.askingPriceCents} />}
       </group>
     );
   }
@@ -189,7 +189,7 @@ function FullTree({
             <meshStandardMaterial color={canopyColor} flatShading />
           </mesh>
         ))}
-        {data.onSale && <ForSaleSign position={[tierConfig.canopyRadius, 0, 0]} />}
+        {data.onSale && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPriceCents={data.askingPriceCents} />}
       </group>
     );
   }
@@ -202,7 +202,7 @@ function FullTree({
           <icosahedronGeometry args={[tierConfig.canopyRadius, 1]} />
           <meshStandardMaterial color={canopyColor} flatShading />
         </mesh>
-        {data.onSale && <ForSaleSign position={[tierConfig.canopyRadius, 0, 0]} />}
+        {data.onSale && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPriceCents={data.askingPriceCents} />}
       </group>
     );
   }
@@ -251,7 +251,7 @@ function FullTree({
       )}
 
       {/* For Sale Sign */}
-      {data.onSale && <ForSaleSign position={[tierConfig.canopyRadius + 1, 0, 0]} />}
+      {data.onSale && <ForSaleSign treeHeight={height} canopyRadius={tierConfig.canopyRadius} askingPriceCents={data.askingPriceCents} />}
     </group>
   );
 }
