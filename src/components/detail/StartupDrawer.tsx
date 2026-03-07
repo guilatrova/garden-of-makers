@@ -21,22 +21,34 @@ interface StartupDrawerProps {
  * Format MRR for display (cents to $X.Xk/mo format)
  */
 function formatMRR(mrrCents: number): string {
+  if (mrrCents === 0) return "";
   const mrr = mrrCents / 100;
-  if (mrr >= 1000) {
-    return `$${(mrr / 1000).toFixed(1)}k/mo`;
+  if (mrr >= 1_000_000) {
+    const val = mrr / 1_000_000;
+    return `$${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}M`;
   }
-  return `$${mrr.toFixed(0)}/mo`;
+  if (mrr >= 1000) {
+    const val = mrr / 1000;
+    return `$${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}k`;
+  }
+  return `$${Math.round(mrr)}`;
 }
 
 /**
  * Format revenue for display
  */
 function formatRevenue(revenueCents: number): string {
+  if (revenueCents === 0) return "";
   const revenue = revenueCents / 100;
-  if (revenue >= 1000) {
-    return `$${(revenue / 1000).toFixed(1)}k`;
+  if (revenue >= 1_000_000) {
+    const val = revenue / 1_000_000;
+    return `$${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}M`;
   }
-  return `$${revenue.toFixed(0)}`;
+  if (revenue >= 1000) {
+    const val = revenue / 1000;
+    return `$${val % 1 === 0 ? val.toFixed(0) : val.toFixed(1)}k`;
+  }
+  return `$${Math.round(revenue)}`;
 }
 
 /**
