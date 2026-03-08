@@ -84,7 +84,8 @@
   "Navigation": {
     "home": "Home",
     "forest": "Forest",
-    "leaderboard": "Leaderboard"
+    "leaderboard": "Leaderboard",
+    "howItWorks": "How It Works"
   },
   "forest": {
     "title": "Garden of Makers",

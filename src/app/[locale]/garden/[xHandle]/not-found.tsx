@@ -17,7 +17,7 @@ export default async function GardenNotFound() {
 
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Link
-              href="/forest"
+              href="/"
               className="inline-flex items-center gap-2 rounded-lg bg-gray-800 px-6 py-3 text-white hover:bg-gray-700 transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -25,7 +25,7 @@ export default async function GardenNotFound() {
             </Link>
 
             <Link
-              href="/forest"
+              href="/"
               className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-6 py-3 text-white hover:bg-green-700 transition-colors"
             >
               <Search className="h-4 w-4" />

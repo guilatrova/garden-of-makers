@@ -3,7 +3,10 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { MakerGardenService } from "@/lib/services/garden";
 import { TreeData } from "@/lib/services/tree/types";
-import { getCategoryDisplayName, getCategoryColor } from "@/lib/constants/categories";
+import {
+  getCategoryDisplayName,
+  getCategoryColor,
+} from "@/lib/constants/categories";
 import { formatMRR } from "@/lib/utils/format";
 import { Link } from "@/i18n/routing";
 import { ArrowLeft, Twitter, TrendingUp, Users, Store } from "lucide-react";
@@ -16,7 +19,9 @@ interface GardenPageProps {
 /**
  * Generate metadata for the garden page
  */
-export async function generateMetadata({ params }: GardenPageProps): Promise<Metadata> {
+export async function generateMetadata({
+  params,
+}: GardenPageProps): Promise<Metadata> {
   const { xHandle } = await params;
 
   try {
@@ -53,7 +58,6 @@ export async function generateMetadata({ params }: GardenPageProps): Promise<Met
     };
   }
 }
-
 
 /**
  * Get garden size display info
@@ -109,7 +113,7 @@ export default async function GardenPage({ params }: GardenPageProps) {
   const gardenSizeInfo = getGardenSizeInfo(garden.gardenSize);
   const shareUrl = `https://gardenofmakers.com/garden/${garden.xHandle}`;
   const shareText = encodeURIComponent(
-    `${displayName} has ${garden.totalProducts} product${garden.totalProducts === 1 ? "" : "s"} with ${formatMRR(garden.totalMRR)} and ${garden.totalCustomers.toLocaleString()} customers 🌳 Check out their garden:`
+    `${displayName} has ${garden.totalProducts} product${garden.totalProducts === 1 ? "" : "s"} with ${formatMRR(garden.totalMRR)} and ${garden.totalCustomers.toLocaleString()} customers 🌳 Check out their garden:`,
   );
 
   return (
@@ -118,7 +122,7 @@ export default async function GardenPage({ params }: GardenPageProps) {
       <div className="border-b border-gray-800 bg-gray-900/50">
         <div className="mx-auto max-w-6xl px-4 py-4">
           <Link
-            href="/forest"
+            href="/"
             className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-green-400 transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />
@@ -144,7 +148,9 @@ export default async function GardenPage({ params }: GardenPageProps) {
                 <div className="mt-1 flex flex-wrap items-center gap-3">
                   {garden.xFollowerCount && garden.xFollowerCount > 0 && (
                     <span className="text-sm text-gray-400">
-                      {t("followers", { count: garden.xFollowerCount.toLocaleString() })}
+                      {t("followers", {
+                        count: garden.xFollowerCount.toLocaleString(),
+                      })}
                     </span>
                   )}
                   <a
@@ -153,8 +159,7 @@ export default async function GardenPage({ params }: GardenPageProps) {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-sm text-green-400 hover:text-green-300 transition-colors"
                   >
-                    <Twitter className="h-3 w-3" />
-                    @{garden.xHandle}
+                    <Twitter className="h-3 w-3" />@{garden.xHandle}
                   </a>
                 </div>
               </div>
@@ -189,13 +194,17 @@ export default async function GardenPage({ params }: GardenPageProps) {
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">{t("products", { count: garden.totalProducts })}</div>
+              <div className="text-sm text-gray-500">
+                {t("products", { count: garden.totalProducts })}
+              </div>
               <div className="font-['Silkscreen'] text-xl font-bold text-white md:text-2xl">
                 {garden.totalProducts}
               </div>
             </div>
             <div>
-              <div className="text-sm text-gray-500">{t("gardenSize.gardenSize")}</div>
+              <div className="text-sm text-gray-500">
+                {t("gardenSize.gardenSize")}
+              </div>
               <div className="flex items-center gap-2">
                 <span className="text-2xl">{gardenSizeInfo.emoji}</span>
                 <span className="font-medium text-white">
@@ -232,11 +241,7 @@ export default async function GardenPage({ params }: GardenPageProps) {
 /**
  * Product Card Component
  */
-function ProductCard({
-  product,
-}: {
-  product: TreeData;
-}) {
+function ProductCard({ product }: { product: TreeData }) {
   const categoryName = getCategoryDisplayName(product.category);
   const categoryColor = getCategoryColor(product.category);
   const tierEmoji = getTierEmoji(product.tier);
@@ -267,7 +272,9 @@ function ProductCard({
           </div>
           <div className="mt-1 flex items-center gap-2 text-sm text-gray-400">
             <span>{tierEmoji}</span>
-            <span className="font-mono text-green-400">{formatMRR(product.mrr)}</span>
+            <span className="font-mono text-green-400">
+              {formatMRR(product.mrr)}
+            </span>
             <span>·</span>
             <span className="flex items-center gap-1">
               <Users className="h-3 w-3" />

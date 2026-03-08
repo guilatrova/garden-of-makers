@@ -84,7 +84,8 @@
   "Navigation": {
     "home": "Início",
     "forest": "Floresta",
-    "leaderboard": "Classificação"
+    "leaderboard": "Classificação",
+    "howItWorks": "Como Funciona"
   },
   "forest": {
     "title": "Garden of Makers",

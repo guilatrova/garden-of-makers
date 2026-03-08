@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 /**
  * Navbar Component
@@ -39,8 +39,8 @@ export function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: "/", label: t("home") },
-    { href: "/forest", label: t("forest") },
+    { href: "/", label: t("forest") },
+    { href: "/how-it-works", label: t("howItWorks") },
     { href: "/leaderboard", label: t("leaderboard") },
   ];
 
