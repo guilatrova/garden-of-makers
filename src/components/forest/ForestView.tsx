@@ -200,12 +200,16 @@ export function ForestView({
           setExploreMode(true);
         } else if (selectedTree) {
           setSelectedTree(null);
+          setSearchFocusSlug(null);
+        } else if (exploreMode) {
+          // Second ESC (nothing open) → go back to menu
+          setExploreMode(false);
         }
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [flyMode, exploreMode, enterFlyMode]);
+  }, [flyMode, exploreMode, enterFlyMode, selectedTree]);
 
   return (
     <div className="relative h-screen w-screen overflow-hidden bg-black">
@@ -225,7 +229,7 @@ export function ForestView({
           flyMode={flyMode}
           onExitFly={handleExitFly}
           holdGrowth={loadingStage === "loading"}
-          externalFocusSlug={searchFocusSlug}
+          externalFocusSlug={selectedTree?.slug ?? searchFocusSlug}
         />
       ) : isLoading ? (
         <div className="flex h-full items-center justify-center">

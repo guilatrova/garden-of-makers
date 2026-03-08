@@ -613,8 +613,8 @@ export function ForestScene({ trees, onTreeClick, flyMode, onExitFly, holdGrowth
   const [selectedTreeSlug, setSelectedTreeSlug] = useState<string | null>(null);
   const [introMode, setIntroMode] = useState(true);
 
-  // Merge external focus (from search) with internal selection
-  const activeFocusSlug = externalFocusSlug ?? selectedTreeSlug;
+  // Use external focus when provided (even if null), otherwise use internal
+  const activeFocusSlug = externalFocusSlug !== undefined ? externalFocusSlug : selectedTreeSlug;
 
   // Track whether holdGrowth was ever true (to enable growth animation)
   const wasHeld = useRef(holdGrowth);
