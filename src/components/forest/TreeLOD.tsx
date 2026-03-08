@@ -8,8 +8,9 @@
  * - Far (> 200): Billboard sprite
  */
 
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useCallback } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
+import type { ThreeEvent } from "@react-three/fiber";
 
 import * as THREE from "three";
 import type { MeshStandardMaterial } from "three";
@@ -206,7 +207,8 @@ function FullTree({
     }));
   }, [height]);
 
-  const handleClick = () => {
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    if (e.delta > 5) return;
     onClick?.(data);
   };
 
@@ -360,7 +362,10 @@ export function TreeLOD({ data, onClick, showLabel }: TreeLODProps) {
   const hitboxHeight = canopyCenter + tierConfig.canopyRadius;
   const hitboxRadius = Math.max(tierConfig.canopyRadius, 3);
 
-  const handleClick = () => onClick?.(data);
+  const handleClick = (e: ThreeEvent<MouseEvent>) => {
+    if (e.delta > 5) return;
+    onClick?.(data);
+  };
 
   return (
     <group ref={groupRef}>
