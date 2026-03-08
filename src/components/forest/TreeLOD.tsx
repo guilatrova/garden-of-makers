@@ -61,7 +61,7 @@ function TreeBillboard({ tier, height, canopyColorOverride, glowing }: { tier: i
 
   // Tiny tiers: just a small sphere on the ground
   if (tier === "seed" || tier === "sprout" || tier === "shrub") {
-    const r = Math.max(0.5, tierConfig.canopyRadius * 0.6);
+    const r = tierConfig.canopyRadius;
     return (
       <mesh position={[0, r * 0.5, 0]}>
         <icosahedronGeometry args={[r, 0]} />
@@ -76,10 +76,10 @@ function TreeBillboard({ tier, height, canopyColorOverride, glowing }: { tier: i
   }
 
   // Standard trees: cone canopy + thin trunk
-  const trunkH = height * 0.35;
-  const trunkR = Math.max(0.3, tierConfig.trunkRadius * 0.5);
+  const trunkH = height * 0.6;
+  const trunkR = tierConfig.trunkRadius;
   const canopyH = height * 0.55;
-  const canopyR = Math.max(1.5, tierConfig.canopyRadius * 0.65);
+  const canopyR = tierConfig.canopyRadius;
 
   return (
     <group>
@@ -128,7 +128,7 @@ function SimplifiedTree({ data, canopyColorOverride, glowing }: { data: TreeData
   if (data.tier === "seed" || data.tier === "sprout" || data.tier === "shrub") {
     return (
       <mesh position={[0, height * 0.5, 0]}>
-        <sphereGeometry args={[tierConfig.canopyRadius, 4, 3]} />
+        <icosahedronGeometry args={[tierConfig.canopyRadius, 1]} />
         <meshStandardMaterial ref={canopyMatRef} color={canopyColor} flatShading emissive={glowing ? canopyColor : "#000000"} emissiveIntensity={glowing ? 0.3 : 0} />
       </mesh>
     );
@@ -154,7 +154,7 @@ function SimplifiedTree({ data, canopyColorOverride, glowing }: { data: TreeData
         {isConeTier ? (
           <coneGeometry args={[tierConfig.canopyRadius, coneHeight, 5]} />
         ) : (
-          <icosahedronGeometry args={[tierConfig.canopyRadius, 0]} />
+          <icosahedronGeometry args={[tierConfig.canopyRadius, 1]} />
         )}
         <meshStandardMaterial ref={canopyMatRef} color={canopyColor} flatShading emissive={glowing ? canopyColor : "#000000"} emissiveIntensity={glowing ? 0.3 : 0} />
       </mesh>
