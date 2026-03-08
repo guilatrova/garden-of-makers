@@ -7,13 +7,11 @@
 import { TrustMRRProvider } from "@/lib/providers/trustmrr";
 import { TreeService } from "@/lib/services/tree";
 import { TreeData } from "@/lib/services/tree/types";
-import { ForestLayoutEngine } from "@/lib/services/forest/ForestLayoutEngine";
-import { PositionedTree } from "@/lib/services/forest/types";
 import { createServiceClient } from "@/lib/utils/supabase/server";
 import { mapRowToStartup, StartupRow } from "@/lib/utils/supabase/mappers";
+import { positionTreesInGarden } from "./GardenLayoutEngine";
 import {
   MakerGarden,
-  MakerGardenServiceConfig,
   calculateGardenSize,
   calculateTotalMRR,
   calculateTotalCustomers,
@@ -23,19 +21,13 @@ import {
 export class MakerGardenService {
   private trustMRRProvider: TrustMRRProvider;
   private treeService: TreeService;
-  private config: MakerGardenServiceConfig;
 
   constructor(
     trustMRRProvider?: TrustMRRProvider,
     treeService?: TreeService,
-    config: MakerGardenServiceConfig = {}
   ) {
     this.trustMRRProvider = trustMRRProvider ?? new TrustMRRProvider();
     this.treeService = treeService ?? new TreeService();
-    this.config = {
-      lotSize: 5,
-      ...config,
-    };
   }
 
   async buildGarden(xHandle: string): Promise<MakerGarden | null> {
@@ -88,7 +80,8 @@ export class MakerGardenService {
       }
     }
 
-    const positionedProducts = this.positionProductsInGarden(allProducts);
+    const { products: positionedProducts, plot } =
+      positionTreesInGarden(allProducts);
     const totalMRR = calculateTotalMRR(positionedProducts);
     const totalCustomers = calculateTotalCustomers(positionedProducts);
 
@@ -101,6 +94,7 @@ export class MakerGardenService {
       totalCustomers,
       totalProducts: allProducts.length,
       gardenSize: calculateGardenSize(allProducts.length),
+      plot,
     };
   }
 
@@ -150,11 +144,4 @@ export class MakerGardenService {
     return allProducts;
   }
 
-  private positionProductsInGarden(products: TreeData[]): PositionedTree[] {
-    const layoutEngine = new ForestLayoutEngine({
-      lotSize: this.config.lotSize ?? 5,
-    });
-
-    return layoutEngine.positionTrees(products);
-  }
 }

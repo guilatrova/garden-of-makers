@@ -218,7 +218,7 @@ export default async function GardenPage({ params }: GardenPageProps) {
         {/* 3D Garden Scene */}
         <div className="mb-8 overflow-hidden rounded-xl border border-gray-800 bg-gray-900/30">
           <div className="h-[400px] w-full md:h-[500px]">
-            <GardenScene trees={garden.products} />
+            <GardenScene trees={garden.products} plot={garden.plot} />
           </div>
         </div>
 

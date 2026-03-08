@@ -15,3 +15,5 @@ export {
   calculateTotalCustomers,
   extractMakerInfo,
 } from "./types";
+export { positionTreesInGarden } from "./GardenLayoutEngine";
+export type { GardenPlot } from "./GardenLayoutEngine";

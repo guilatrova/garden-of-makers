@@ -10,13 +10,34 @@ import { useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
+export interface SkyTheme {
+  fogColor: string;
+  fogNear: number;
+  fogFar: number;
+  ambientColor: string;
+  ambientIntensity: number;
+  sunColor: string;
+  sunIntensity: number;
+  sunPos: [number, number, number];
+  fillColor: string;
+  fillIntensity: number;
+  fillPos: [number, number, number];
+  hemiSky: string;
+  hemiGround: string;
+  hemiIntensity: number;
+}
+
 export interface SkyboxProps {
   /** Enable soft shadows */
   shadows?: boolean;
+  /** Gradient stops for the sky dome */
+  skyStops?: [number, string][];
+  /** Theme overrides */
+  theme?: Partial<SkyTheme>;
 }
 
 // Sunset gradient stops (from git-city's Sunset theme)
-const SUNSET_SKY_STOPS: [number, string][] = [
+export const SUNSET_SKY_STOPS: [number, string][] = [
   [0, "#0c0614"],
   [0.15, "#1c0e30"],
   [0.28, "#3a1850"],
@@ -32,7 +53,7 @@ const SUNSET_SKY_STOPS: [number, string][] = [
 ];
 
 // Sunset theme colors
-const SUNSET_THEME = {
+export const SUNSET_THEME: SkyTheme = {
   fogColor: "#80405a",
   fogNear: 400,
   fogFar: 2500,
@@ -40,10 +61,10 @@ const SUNSET_THEME = {
   ambientIntensity: 0.7,
   sunColor: "#f0b070",
   sunIntensity: 1.0,
-  sunPos: [400, 120, -300] as [number, number, number],
+  sunPos: [400, 120, -300],
   fillColor: "#6050a0",
   fillIntensity: 0.35,
-  fillPos: [-200, 80, 200] as [number, number, number],
+  fillPos: [-200, 80, 200],
   hemiSky: "#d09080",
   hemiGround: "#4a2828",
   hemiIntensity: 0.55,
@@ -95,8 +116,9 @@ function SkyDome({ stops }: { stops: [number, string][] }) {
   );
 }
 
-export function Skybox({ shadows = true }: SkyboxProps) {
-  const t = SUNSET_THEME;
+export function Skybox({ shadows = true, skyStops, theme }: SkyboxProps) {
+  const t = theme ? { ...SUNSET_THEME, ...theme } : SUNSET_THEME;
+  const stops = skyStops ?? SUNSET_SKY_STOPS;
 
   return (
     <>
@@ -104,7 +126,7 @@ export function Skybox({ shadows = true }: SkyboxProps) {
       <fog attach="fog" args={[t.fogColor, t.fogNear, t.fogFar]} />
 
       {/* Gradient sky dome */}
-      <SkyDome stops={SUNSET_SKY_STOPS} />
+      <SkyDome stops={stops} />
 
       {/* Ambient light */}
       <ambientLight intensity={t.ambientIntensity * 3} color={t.ambientColor} />

@@ -4,6 +4,7 @@
  */
 
 import { TreeData } from "@/lib/services/tree/types";
+import { GardenPlot } from "./GardenLayoutEngine";
 
 export type GardenSize = "small" | "medium" | "large" | "estate";
 
@@ -16,6 +17,7 @@ export interface MakerGarden {
   totalCustomers: number;
   totalProducts: number;
   gardenSize: GardenSize;
+  plot: GardenPlot;
 }
 
 export interface MakerGardenServiceConfig {

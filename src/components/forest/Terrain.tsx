@@ -2,19 +2,30 @@
 
 /**
  * Terrain Component
- * Ground plane for the forest
+ * Ground plane for the scene — color and size are configurable.
  */
 
-export function Terrain() {
+export interface TerrainProps {
+  color?: string;
+  emissive?: string;
+  emissiveIntensity?: number;
+  size?: number;
+}
+
+export function Terrain({
+  color = "#8B7355",
+  emissive,
+  emissiveIntensity = 0.15,
+  size = 2000,
+}: TerrainProps) {
   return (
     <group>
-      {/* Main ground plane - sunset golden earth */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0, 0]}>
-        <planeGeometry args={[2000, 2000]} />
+        <planeGeometry args={[size, size]} />
         <meshStandardMaterial
-          color="#8B7355"
-          emissive="#8B7355"
-          emissiveIntensity={0.15}
+          color={color}
+          emissive={emissive ?? color}
+          emissiveIntensity={emissiveIntensity}
           roughness={0.9}
           metalness={0.1}
         />
