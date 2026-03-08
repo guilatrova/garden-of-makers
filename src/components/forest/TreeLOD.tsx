@@ -8,7 +8,7 @@
  * - Far (> 200): Billboard sprite
  */
 
-import { useRef, useState, useMemo, useCallback } from "react";
+import { useRef, useState, useMemo } from "react";
 import { useFrame, useThree } from "@react-three/fiber";
 import type { ThreeEvent } from "@react-three/fiber";
 

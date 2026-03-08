@@ -7,18 +7,43 @@
 
 import { TreeData } from "@/lib/services/tree/types";
 import { PositionedTree } from "@/lib/services/forest/types";
+import { getTierConfig } from "@/lib/services/tree/TreeCalculator";
+import { BASE_TREE_HEIGHT } from "@/lib/constants/tiers";
 
 export interface GardenPlot {
   width: number;
   depth: number;
 }
 
-/** Plot scales with product count */
-function getPlotDimensions(productCount: number): GardenPlot {
-  if (productCount <= 2) return { width: 20, depth: 14 };
-  if (productCount <= 5) return { width: 30, depth: 20 };
-  if (productCount <= 10) return { width: 40, depth: 25 };
-  return { width: 50, depth: 30 };
+/** Plot scales with product count and largest tree size */
+function getPlotDimensions(productCount: number, trees: TreeData[]): GardenPlot {
+  // Base dimensions from product count
+  let width: number, depth: number;
+  if (productCount <= 2) { width = 20; depth = 14; }
+  else if (productCount <= 5) { width = 30; depth = 20; }
+  else if (productCount <= 10) { width = 40; depth = 25; }
+  else { width = 50; depth = 30; }
+
+  // Ensure plot is proportional to the largest tree
+  if (trees.length > 0) {
+    let maxCanopy = 0;
+    let maxHeight = 0;
+    for (const tree of trees) {
+      const tc = getTierConfig(tree.tier);
+      maxCanopy = Math.max(maxCanopy, tc.canopyRadius);
+      maxHeight = Math.max(maxHeight, BASE_TREE_HEIGHT * tc.relativeHeight);
+    }
+    // Plot should be at least 4x the largest canopy diameter
+    const minFromCanopy = maxCanopy * 8;
+    // Also scale with tree height so tall trees don't dwarf the plot
+    const minFromHeight = maxHeight * 0.8;
+    const minDim = Math.max(minFromCanopy, minFromHeight);
+
+    width = Math.max(width, minDim);
+    depth = Math.max(depth, minDim * 0.7);
+  }
+
+  return { width, depth };
 }
 
 const MARGIN = 8; // gap from plot edge to first tree ring
@@ -97,7 +122,7 @@ export function positionTreesInGarden(trees: TreeData[]): {
     return mrrB - mrrA;
   });
 
-  const plot = getPlotDimensions(sorted.length);
+  const plot = getPlotDimensions(sorted.length, sorted);
   const positions = generatePositions(sorted.length, plot);
 
   const products: PositionedTree[] = sorted.map((tree, i) => ({

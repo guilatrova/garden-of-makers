@@ -58,7 +58,7 @@ describe("ForestLayoutEngine", () => {
     });
 
     it("should distribute trees in spiral pattern", () => {
-      const positions = [];
+      const positions: { x: number; z: number }[] = [];
       for (let i = 0; i < 5; i++) {
         positions.push(fibonacciSpiral(i, 10));
       }
@@ -223,7 +223,7 @@ describe("ForestLayoutEngine", () => {
       
       const treeWithoutMrr: TreeData = {
         ...createTestTree("no-mrr", "young", 0, "saas"),
-        mrr: null as unknown as undefined,
+        mrr: 0,
         revenueLast30Days: 1_000_000, // Higher than 500_000
       };
 
