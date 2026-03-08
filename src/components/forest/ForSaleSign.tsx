@@ -75,12 +75,15 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating 
             side={THREE.DoubleSide}
             emissive={style.emissive}
             emissiveIntensity={0.3}
+            polygonOffset
+            polygonOffsetFactor={1}
+            polygonOffsetUnits={1}
           />
         </mesh>
 
         {/* Label - front */}
         <Text
-          position={[0, titleY, 0.02]}
+          position={[0, titleY, 0.15]}
           fontSize={titleSize}
           color={style.textColor}
           anchorX="center"
@@ -91,7 +94,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating 
         </Text>
         {/* Label - back */}
         <Text
-          position={[0, titleY, -0.02]}
+          position={[0, titleY, -0.15]}
           fontSize={titleSize}
           color={style.textColor}
           anchorX="center"
@@ -105,7 +108,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating 
         {/* Price - front */}
         {hasPrice && (
           <Text
-            position={[0, priceY, 0.02]}
+            position={[0, priceY, 0.15]}
             fontSize={priceSize}
             color={style.priceColor}
             anchorX="center"
@@ -118,7 +121,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating 
         {/* Price - back */}
         {hasPrice && (
           <Text
-            position={[0, priceY, -0.02]}
+            position={[0, priceY, -0.15]}
             fontSize={priceSize}
             color={style.priceColor}
             anchorX="center"
