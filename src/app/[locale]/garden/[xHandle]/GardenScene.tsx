@@ -26,10 +26,17 @@ import {
   type SkyPresetKey,
   type TerrainPresetKey,
 } from "./gardenPresets";
+import { DecorationRenderer } from "@/components/garden/decorations";
+import { DecorationCatalog } from "@/components/garden/DecorationCatalog";
+import { DecorationPlacementMode } from "@/components/garden/DecorationPlacementMode";
+import { PlacementGrid } from "@/components/garden/PlacementGrid";
+import { useDecorations } from "@/hooks/useDecorations";
 
 interface GardenSceneProps {
   trees: TreeData[];
   plot: GardenPlot;
+  mrr: number;
+  xHandle: string;
 }
 
 // ─── Garden Plot (fenced rectangular area) ─────────────────
@@ -68,7 +75,7 @@ function GardenPlotMesh({ width, depth }: GardenPlot) {
   return (
     <group>
       {/* Plot ground — grass-tinted */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.1, 0]}>
         <planeGeometry args={[width, depth]} />
         <meshStandardMaterial
           color="#5e7a4a"
@@ -399,12 +406,13 @@ function ConfigPanel({
 
 // ─── Main GardenScene ─────────────────────────────────────
 
-export function GardenScene({ trees, plot }: GardenSceneProps) {
+export function GardenScene({ trees, plot, mrr, xHandle }: GardenSceneProps) {
   const [selectedTree, setSelectedTree] = useState<TreeData | null>(null);
   const [skyPreset, setSkyPreset] = useState<SkyPresetKey>("sunset");
   const [terrainPreset, setTerrainPreset] = useState<TerrainPresetKey>("earth");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const controlsRef = useRef<any>(null);
+  const decorations = useDecorations(xHandle);
 
   const handleTreeClick = useCallback((tree: TreeData) => {
     setSelectedTree(tree);
@@ -432,6 +440,15 @@ export function GardenScene({ trees, plot }: GardenSceneProps) {
 
   return (
     <div className="relative h-full w-full">
+      {/* Decoration catalog (left) */}
+      <DecorationCatalog
+        mrr={mrr}
+        onSelectDecoration={decorations.startPlacing}
+        placementMode={decorations.placementMode}
+        onCancelPlacement={decorations.cancelPlacing}
+      />
+
+      {/* Customize panel (right) */}
       <ConfigPanel
         skyPreset={skyPreset}
         terrainPreset={terrainPreset}
@@ -468,6 +485,26 @@ export function GardenScene({ trees, plot }: GardenSceneProps) {
 
           {/* Fenced garden plot */}
           <GardenPlotMesh width={plot.width} depth={plot.depth} />
+
+          {/* Placed decorations */}
+          <DecorationRenderer
+            placements={decorations.placements}
+            onRemove={decorations.removeDecoration}
+          />
+
+          {/* Placement mode: ghost preview + grid */}
+          {decorations.placementMode && decorations.selectedDecorationId && (
+            <>
+              <PlacementGrid plot={plot} />
+              <DecorationPlacementMode
+                decorationId={decorations.selectedDecorationId}
+                plot={plot}
+                existingPlacements={decorations.placements}
+                onConfirm={decorations.confirmPlacement}
+                onCancel={decorations.cancelPlacing}
+              />
+            </>
+          )}
 
           {/* Orbit controls */}
           <OrbitControls
