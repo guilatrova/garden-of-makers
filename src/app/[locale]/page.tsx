@@ -2,6 +2,9 @@ import { Metadata } from "next";
 import { ForestService } from "@/lib/services/forest";
 import { ForestView } from "@/components/forest";
 import { TreeData } from "@/lib/services/tree/types";
+import { DataSyncer } from "@/lib/services/data";
+import { createServiceClient } from "@/lib/utils/supabase/server";
+import { TrustMRRProvider } from "@/lib/providers/trustmrr";
 
 export const metadata: Metadata = {
   title: "Explore the Forest | Garden of Makers",
@@ -20,7 +23,8 @@ export default async function ForestPage() {
   let initialCategories: string[] = [];
 
   try {
-    const forestService = new ForestService();
+    const syncer = new DataSyncer(createServiceClient(), new TrustMRRProvider());
+    const forestService = new ForestService(syncer);
     const forestData = await forestService.buildForest();
 
     initialTrees = forestData.trees;

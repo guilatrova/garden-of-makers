@@ -7,7 +7,7 @@ export {
   fibonacciSpiral,
   getDistance,
 } from "./ForestLayoutEngine";
-export { ForestService, forestService } from "./ForestService";
+export { ForestService } from "./ForestService";
 export type {
   TreePosition,
   PositionedTree,

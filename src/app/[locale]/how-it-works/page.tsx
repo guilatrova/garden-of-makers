@@ -4,6 +4,9 @@ import { ArrowRight, Sparkles, TreePine, Globe } from "lucide-react";
 import { TIER_CONFIGS } from "@/lib/constants/tiers";
 import { FRUIT_DEFINITIONS } from "@/lib/constants/fruits";
 import { ForestService } from "@/lib/services/forest";
+import { DataSyncer } from "@/lib/services/data";
+import { createServiceClient } from "@/lib/utils/supabase/server";
+import { TrustMRRProvider } from "@/lib/providers/trustmrr";
 import { formatMRR } from "@/lib/utils/format";
 
 /**
@@ -244,7 +247,8 @@ async function StatsSection({
   };
 
   try {
-    const forestService = new ForestService();
+    const syncer = new DataSyncer(createServiceClient(), new TrustMRRProvider());
+    const forestService = new ForestService(syncer);
     const forestData = await forestService.buildForest();
 
     stats.totalStartups = forestData.totalStartups;
