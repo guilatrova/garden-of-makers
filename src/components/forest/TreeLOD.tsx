@@ -59,19 +59,29 @@ function TreeBillboard({ tier, height, canopyColorOverride, glowing }: { tier: i
   const trunkColor = TRUNK_COLORS[tier];
   const tierConfig = getTierConfig(tier);
 
-  // Tiny tiers: just a small sphere on the ground
+  // Tiny tiers: small sphere with a short trunk to connect to ground
   if (tier === "seed" || tier === "sprout" || tier === "shrub") {
     const r = tierConfig.canopyRadius;
+    const trunkH = height * 0.4;
+    const trunkR = tierConfig.trunkRadius;
     return (
-      <mesh position={[0, height * 0.5, 0]}>
-        <icosahedronGeometry args={[r, 0]} />
-        <meshStandardMaterial
-          color={canopyColor}
-          flatShading
-          emissive={glowing ? canopyColor : "#000000"}
-          emissiveIntensity={glowing ? 0.5 : 0}
-        />
-      </mesh>
+      <group>
+        {/* Short trunk */}
+        <mesh position={[0, trunkH / 2, 0]}>
+          <cylinderGeometry args={[trunkR * 0.6, trunkR, trunkH, 4]} />
+          <meshStandardMaterial color={trunkColor} flatShading />
+        </mesh>
+        {/* Canopy */}
+        <mesh position={[0, trunkH + r * 0.4, 0]}>
+          <icosahedronGeometry args={[r, 0]} />
+          <meshStandardMaterial
+            color={canopyColor}
+            flatShading
+            emissive={glowing ? canopyColor : "#000000"}
+            emissiveIntensity={glowing ? 0.5 : 0}
+          />
+        </mesh>
+      </group>
     );
   }
 
@@ -124,13 +134,23 @@ function SimplifiedTree({ data, canopyColorOverride, glowing }: { data: TreeData
   const canopyY = trunkTop + tierConfig.canopyRadius * 0.5;
   const coneHeight = height * 0.55;
 
-  // Don't render for seed/sprout/shrub
+  // Small tiers: sphere canopy with short trunk
   if (data.tier === "seed" || data.tier === "sprout" || data.tier === "shrub") {
+    const smallTrunkH = height * 0.4;
+    const r = tierConfig.canopyRadius;
     return (
-      <mesh position={[0, height * 0.5, 0]}>
-        <icosahedronGeometry args={[tierConfig.canopyRadius, 1]} />
-        <meshStandardMaterial ref={canopyMatRef} color={canopyColor} flatShading emissive={glowing ? canopyColor : "#000000"} emissiveIntensity={glowing ? 0.3 : 0} />
-      </mesh>
+      <group>
+        {/* Short trunk */}
+        <mesh position={[0, smallTrunkH / 2, 0]}>
+          <cylinderGeometry args={[tierConfig.trunkRadius * 0.6, tierConfig.trunkRadius, smallTrunkH, 4]} />
+          <meshStandardMaterial color={trunkColor} flatShading />
+        </mesh>
+        {/* Canopy */}
+        <mesh position={[0, smallTrunkH + r * 0.4, 0]}>
+          <icosahedronGeometry args={[r, 1]} />
+          <meshStandardMaterial ref={canopyMatRef} color={canopyColor} flatShading emissive={glowing ? canopyColor : "#000000"} emissiveIntensity={glowing ? 0.3 : 0} />
+        </mesh>
+      </group>
     );
   }
 
@@ -248,10 +268,18 @@ function FullTree({
 
   // Shrub tier
   if (data.tier === "shrub") {
+    const shrubTrunkH = height * 0.4;
+    const r = tierConfig.canopyRadius;
     return (
       <group onClick={handleClick}>
-        <mesh position={[0, height * 0.5, 0]}>
-          <icosahedronGeometry args={[tierConfig.canopyRadius, 1]} />
+        {/* Short trunk */}
+        <mesh position={[0, shrubTrunkH / 2, 0]}>
+          <cylinderGeometry args={[tierConfig.trunkRadius * 0.6, tierConfig.trunkRadius, shrubTrunkH, 5]} />
+          <meshStandardMaterial color={trunkColor} flatShading />
+        </mesh>
+        {/* Canopy */}
+        <mesh position={[0, shrubTrunkH + r * 0.4, 0]}>
+          <icosahedronGeometry args={[r, 1]} />
           <meshStandardMaterial color={canopyColor} flatShading />
         </mesh>
       </group>

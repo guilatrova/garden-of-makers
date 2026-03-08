@@ -23,7 +23,7 @@ export interface TreeProps {
 export const TRUNK_COLORS: Record<TreeTier, string> = {
   seed: "#8B4513",
   sprout: "#228B22", // Green stem, no trunk
-  shrub: "#228B22", // Bush, no visible trunk
+  shrub: "#90EE90", // Light green for contrast
   young: "#DEB887", // Birch-like
   mature: "#8B4513", // Oak
   great: "#654321", // Darker brown
