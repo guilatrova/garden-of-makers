@@ -1,4 +1,3 @@
 - [ ] Ads
-- [ ] Search for STARTUP tag
 - [ ] Garden
 - [ ] Intro animation bug

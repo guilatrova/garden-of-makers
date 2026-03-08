@@ -95,7 +95,7 @@ function IntroFlyover({
       new THREE.Vector3(-120, 110, 180),   // WP1: Descending
       new THREE.Vector3(0, 80, 120),       // WP2: Approaching center
       new THREE.Vector3(tx + 60, 60, tz + 90),  // WP3: Near target
-      new THREE.Vector3(tx + 50, 50, tz + 120), // WP4: Final orbit position
+      new THREE.Vector3(tx + 50, 60, tz + 120), // WP4: Final orbit position (Y≥60 to satisfy maxPolarAngle)
     ];
     const lookPoints = [
       new THREE.Vector3(0, 30, 0),          // WP0: City center
@@ -131,6 +131,7 @@ function IntroFlyover({
 
     if (elapsed.current >= INTRO_DURATION && !ended.current) {
       ended.current = true;
+      console.log("[INTRO] ended — camera pos:", camera.position.toArray().map(n => n.toFixed(1)), "lookAt:", _introLook.toArray().map(n => n.toFixed(1)));
       onEnd();
     }
   });
@@ -520,12 +521,37 @@ function AirplaneMesh() {
 function OrbitScene({
   trees,
   focusedTreeSlug,
+  initialTarget,
 }: {
   trees: TreeData[];
   focusedTreeSlug: string | null;
+  initialTarget: [number, number, number] | null;
 }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const controlsRef = useRef<any>(null);
+
+  // Callback ref: set OrbitControls target to the intro's final look-at position
+  // so the transition is seamless (no snap to default 0,0,0).
+  const setControlsRef = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (controls: any) => {
+      controlsRef.current = controls;
+      if (controls && initialTarget) {
+        controls.target.set(...initialTarget);
+        controls.update();
+        console.log("[ORBIT] ref callback — target set to:", initialTarget, "camera pos:", controls.object.position.toArray().map((n: number) => n.toFixed(1)));
+      }
+    },
+    [initialTarget]
+  );
+
+  const changeCount = useRef(0);
+  const handleChange = useCallback(() => {
+    changeCount.current++;
+    if (changeCount.current <= 3 && controlsRef.current) {
+      console.log(`[ORBIT] onChange #${changeCount.current} — camera pos:`, controlsRef.current.object.position.toArray().map((n: number) => n.toFixed(1)), "target:", controlsRef.current.target.toArray().map((n: number) => n.toFixed(1)));
+    }
+  }, []);
 
   return (
     <>
@@ -535,7 +561,8 @@ function OrbitScene({
         controlsRef={controlsRef}
       />
       <OrbitControls
-        ref={controlsRef}
+        ref={setControlsRef}
+        onChange={handleChange}
         makeDefault
         enableDamping
         dampingFactor={0.05}
@@ -676,6 +703,13 @@ export function ForestScene({ trees, onTreeClick, flyMode, onExitFly, holdGrowth
     return { x: best.position.x, y: best.position.y, z: best.position.z, height: bestHeight };
   }, [trees]);
 
+  // The intro flyover ends looking at [tx, ty*0.3, tz] — pass this explicitly
+  // to OrbitScene so it can initialize OrbitControls with the correct target.
+  const introEndTarget = useMemo((): [number, number, number] | null => {
+    if (!tallestTree) return null;
+    return [tallestTree.x, tallestTree.height * 0.3, tallestTree.z];
+  }, [tallestTree]);
+
   return (
     <Canvas
       shadows
@@ -711,7 +745,7 @@ export function ForestScene({ trees, onTreeClick, flyMode, onExitFly, holdGrowth
         ) : flyMode && !introMode ? (
           <FlightMode onExit={onExitFly ?? (() => {})} />
         ) : !introMode ? (
-          <OrbitScene trees={trees} focusedTreeSlug={activeFocusSlug} />
+          <OrbitScene trees={trees} focusedTreeSlug={activeFocusSlug} initialTarget={introEndTarget} />
         ) : null}
 
         {/* Trees */}
