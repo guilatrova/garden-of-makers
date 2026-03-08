@@ -272,7 +272,7 @@ export function ForestView({
                     setSearchError(null);
                   }}
                   onKeyDown={handleSearchKeyDown}
-                  placeholder="Search any Twitter/X handle"
+                  placeholder="Search by name, slug, or @handle"
                   className="w-[320px] rounded border border-gray-600 bg-gray-900/90 px-4 py-3 pr-10 font-['Silkscreen'] text-sm text-white placeholder-gray-500 outline-none backdrop-blur transition-colors focus:border-green-500"
                 />
                 <Search className="absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />

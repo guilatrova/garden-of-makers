@@ -6,18 +6,22 @@
  * Scales with tree height - taller trees get bigger flags
  */
 
-import { useRef } from "react";
+import { useRef, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import { Text } from "@react-three/drei";
 import * as THREE from "three";
 import { DealRating } from "@/lib/services/tree/TreeCalculator";
 import { formatAskingPrice } from "@/lib/utils/format";
 
+const GROW_DURATION = 0.6;
+const SHRINK_DURATION = 0.4;
+
 export interface ForSaleSignProps {
   treeHeight: number;
   canopyRadius: number;
   askingPrice?: number | null;
   dealRating?: DealRating | null;
+  visible?: boolean;
   onClick?: () => void;
 }
 
@@ -28,8 +32,23 @@ const DEAL_FLAG_STYLES: Record<DealRating, { bg: string; emissive: string; textC
 
 const DEFAULT_FLAG_STYLE = { bg: "#888888", emissive: "#888888", textColor: "#CCCCCC", priceColor: "#AAAAAA", label: "ON SALE" };
 
-export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating, onClick }: ForSaleSignProps) {
+export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating, visible = true, onClick }: ForSaleSignProps) {
   const flagRef = useRef<THREE.Group>(null);
+  const rootRef = useRef<THREE.Group>(null);
+  const transitionStart = useRef<number | null>(null);
+  // "growing" | "visible" | "shrinking" | "hidden"
+  const animState = useRef<"growing" | "visible" | "shrinking" | "hidden">("growing");
+
+  // React to visible prop changes
+  useEffect(() => {
+    if (visible && (animState.current === "hidden" || animState.current === "shrinking")) {
+      animState.current = "growing";
+      transitionStart.current = null; // reset to pick up clock on next frame
+    } else if (!visible && (animState.current === "visible" || animState.current === "growing")) {
+      animState.current = "shrinking";
+      transitionStart.current = null;
+    }
+  }, [visible]);
 
   const hasPrice = askingPrice != null && askingPrice > 0;
   const style = dealRating ? DEAL_FLAG_STYLES[dealRating] : DEFAULT_FLAG_STYLE;
@@ -44,10 +63,30 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating,
   // Flag sits on top of the canopy
   const baseY = treeHeight * 0.6 + canopyRadius;
 
-  // Gentle waving animation
+  // Grow / shrink animation + gentle waving
   useFrame((state) => {
     if (flagRef.current) {
       flagRef.current.rotation.y = Math.sin(state.clock.elapsedTime * 2) * 0.15;
+    }
+
+    if (!rootRef.current || animState.current === "visible" || animState.current === "hidden") return;
+
+    if (transitionStart.current === null) {
+      transitionStart.current = state.clock.elapsedTime;
+    }
+
+    const elapsed = state.clock.elapsedTime - transitionStart.current;
+
+    if (animState.current === "growing") {
+      const progress = Math.min(1, elapsed / GROW_DURATION);
+      const t = 1 - Math.pow(1 - progress, 3); // ease-out cubic
+      rootRef.current.scale.set(t, t, t);
+      if (progress >= 1) animState.current = "visible";
+    } else if (animState.current === "shrinking") {
+      const progress = Math.min(1, elapsed / SHRINK_DURATION);
+      const t = 1 - progress * progress; // ease-in quad (1 → 0)
+      rootRef.current.scale.set(t, t, t);
+      if (progress >= 1) animState.current = "hidden";
     }
   });
 
@@ -60,7 +99,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating,
   const priceY = -flagHeight * 0.18;
 
   return (
-    <group position={[0, baseY, 0]}>
+    <group ref={rootRef} position={[0, baseY, 0]} scale={[0, 0, 0]}>
       {/* Pole */}
       <mesh
         position={[0, poleHeight / 2, 0]}
