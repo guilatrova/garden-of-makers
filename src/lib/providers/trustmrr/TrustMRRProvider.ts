@@ -88,15 +88,36 @@ export class TrustMRRProvider {
     url: string
   ): Promise<{ response: T; rateLimit: TrustMRRRateLimit }> {
     const apiKey = this.ensureApiKey();
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-    });
+    const maxRetries = 3;
 
+    let lastError: Error | undefined;
+    for (let attempt = 0; attempt < maxRetries; attempt++) {
+      try {
+        const response = await fetch(url, {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        });
+        return await this.parseResponse<T>(response, url);
+      } catch (error) {
+        lastError = error instanceof Error ? error : new Error(String(error));
+        if (attempt < maxRetries - 1) {
+          const delay = 1000 * 2 ** attempt; // 1s, 2s, 4s
+          console.warn(`[TrustMRR] fetch attempt ${attempt + 1} failed, retrying in ${delay}ms...`, lastError.message);
+          await new Promise((r) => setTimeout(r, delay));
+        }
+      }
+    }
+    throw lastError!;
+  }
+
+  private async parseResponse<T>(
+    response: Response,
+    url: string
+  ): Promise<{ response: T; rateLimit: TrustMRRRateLimit }> {
     // Parse rate limit headers
     const rateLimit: TrustMRRRateLimit = {
       limit: parseInt(response.headers.get("X-RateLimit-Limit") ?? "20", 10),
