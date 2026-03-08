@@ -12,19 +12,24 @@ import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import { TreeData } from "@/lib/services/tree/types";
 import { GardenPlot } from "@/lib/services/garden/GardenLayoutEngine";
-import { Skybox, type SkyboxProps } from "@/components/forest/Skybox";
-import { Terrain, type TerrainProps } from "@/components/forest/Terrain";
+import { Skybox } from "@/components/forest/Skybox";
+import { Terrain } from "@/components/forest/Terrain";
 import { TreeLOD } from "@/components/forest/TreeLOD";
 import { WorldTreeEffects } from "@/components/forest/WorldTreeEffects";
 import { StartupDrawer } from "@/components/detail/StartupDrawer";
 import { getTierConfig } from "@/lib/services/tree/TreeCalculator";
 import { BASE_TREE_HEIGHT } from "@/lib/constants/tiers";
+import { Settings, ChevronDown } from "lucide-react";
+import {
+  SKY_PRESETS,
+  TERRAIN_PRESETS,
+  type SkyPresetKey,
+  type TerrainPresetKey,
+} from "./gardenPresets";
 
 interface GardenSceneProps {
   trees: TreeData[];
   plot: GardenPlot;
-  sky?: Omit<SkyboxProps, "shadows">;
-  terrain?: TerrainProps;
 }
 
 // ─── Garden Plot (fenced rectangular area) ─────────────────
@@ -312,10 +317,92 @@ function TreeWithEffects({
   return treeContent;
 }
 
+// ─── Config Panel ─────────────────────────────────────────
+
+function ConfigPanel({
+  skyPreset,
+  terrainPreset,
+  onSkyChange,
+  onTerrainChange,
+}: {
+  skyPreset: SkyPresetKey;
+  terrainPreset: TerrainPresetKey;
+  onSkyChange: (key: SkyPresetKey) => void;
+  onTerrainChange: (key: TerrainPresetKey) => void;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="absolute top-3 right-3 z-10">
+      <button
+        onClick={() => setOpen(!open)}
+        className="flex items-center gap-1.5 rounded-lg bg-gray-900/80 px-3 py-2 text-xs font-medium text-gray-300 backdrop-blur-sm border border-gray-700/50 hover:bg-gray-800/90 transition-colors"
+      >
+        <Settings className="h-3.5 w-3.5" />
+        Customize
+        <ChevronDown className={`h-3 w-3 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+
+      {open && (
+        <div className="mt-2 rounded-lg bg-gray-900/90 backdrop-blur-sm border border-gray-700/50 p-3 w-52">
+          {/* Sky */}
+          <div className="mb-3">
+            <div className="text-[10px] uppercase tracking-wider text-gray-500 mb-1.5">Sky</div>
+            <div className="flex flex-wrap gap-1.5">
+              {(Object.keys(SKY_PRESETS) as SkyPresetKey[]).map((key) => (
+                <button
+                  key={key}
+                  onClick={() => onSkyChange(key)}
+                  className={`rounded px-2 py-1 text-xs transition-colors ${
+                    skyPreset === key
+                      ? "bg-green-600 text-white"
+                      : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                  }`}
+                >
+                  {SKY_PRESETS[key].label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Terrain */}
+          <div>
+            <div className="text-[10px] uppercase tracking-wider text-gray-500 mb-1.5">Terrain</div>
+            <div className="flex flex-wrap gap-1.5">
+              {(Object.keys(TERRAIN_PRESETS) as TerrainPresetKey[]).map((key) => {
+                const preset = TERRAIN_PRESETS[key];
+                return (
+                  <button
+                    key={key}
+                    onClick={() => onTerrainChange(key)}
+                    className={`flex items-center gap-1.5 rounded px-2 py-1 text-xs transition-colors ${
+                      terrainPreset === key
+                        ? "bg-green-600 text-white"
+                        : "bg-gray-800 text-gray-400 hover:bg-gray-700"
+                    }`}
+                  >
+                    <span
+                      className="inline-block h-2.5 w-2.5 rounded-sm border border-white/20"
+                      style={{ backgroundColor: preset.color }}
+                    />
+                    {preset.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Main GardenScene ─────────────────────────────────────
 
-export function GardenScene({ trees, plot, sky, terrain }: GardenSceneProps) {
+export function GardenScene({ trees, plot }: GardenSceneProps) {
   const [selectedTree, setSelectedTree] = useState<TreeData | null>(null);
+  const [skyPreset, setSkyPreset] = useState<SkyPresetKey>("sunset");
+  const [terrainPreset, setTerrainPreset] = useState<TerrainPresetKey>("earth");
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const controlsRef = useRef<any>(null);
 
@@ -330,18 +417,28 @@ export function GardenScene({ trees, plot, sky, terrain }: GardenSceneProps) {
   // Compute grow order: front trees first (highest Z first)
   const growOrder = useMemo(() => {
     const withZ = trees.map((t, i) => ({ index: i, z: t.position.z }));
-    withZ.sort((a, b) => b.z - a.z); // front (high Z) first
+    withZ.sort((a, b) => b.z - a.z);
     const order = new Array<number>(trees.length);
     withZ.forEach((item, pos) => { order[item.index] = pos; });
     return order;
   }, [trees]);
 
-  // Camera: high enough to see horizon bands of the sky dome (like the forest)
+  const currentSky = SKY_PRESETS[skyPreset];
+  const currentTerrain = TERRAIN_PRESETS[terrainPreset];
+
+  // Camera: high enough to see horizon bands of the sky dome
   const cameraZ = plot.depth / 2 + 50;
   const cameraY = Math.max(60, plot.depth * 1.5);
 
   return (
-    <>
+    <div className="relative h-full w-full">
+      <ConfigPanel
+        skyPreset={skyPreset}
+        terrainPreset={terrainPreset}
+        onSkyChange={setSkyPreset}
+        onTerrainChange={setTerrainPreset}
+      />
+
       <Canvas
         shadows
         camera={{
@@ -359,8 +456,15 @@ export function GardenScene({ trees, plot, sky, terrain }: GardenSceneProps) {
         style={{ width: "100%", height: "100%", display: "block" }}
       >
         <Suspense fallback={null}>
-          <Skybox shadows {...sky} />
-          <Terrain {...terrain} />
+          <Skybox
+            shadows
+            skyStops={currentSky.stops}
+            theme={currentSky.theme}
+          />
+          <Terrain
+            color={currentTerrain.color}
+            emissiveIntensity={currentTerrain.emissiveIntensity}
+          />
 
           {/* Fenced garden plot */}
           <GardenPlotMesh width={plot.width} depth={plot.depth} />
@@ -413,7 +517,7 @@ export function GardenScene({ trees, plot, sky, terrain }: GardenSceneProps) {
       </Canvas>
 
       <StartupDrawer startup={selectedTree} onClose={handleCloseDrawer} />
-    </>
+    </div>
   );
 }
 
