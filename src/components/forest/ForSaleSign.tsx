@@ -35,7 +35,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating 
   const sizeScale = dealRating === "great" ? 1 : dealRating === "good" ? 0.75 : 0.5;
 
   // Scale flag based on tree height - very large to be visible from far
-  const flagWidth = Math.max(12, treeHeight * 0.7) * sizeScale;
+  const flagWidth = Math.max(15, treeHeight * 0.85) * sizeScale;
   const flagHeight = Math.max(6, treeHeight * 0.4) * sizeScale;
   const poleHeight = flagHeight * 2;
   const poleRadius = Math.max(0.3, treeHeight * 0.02) * sizeScale;
@@ -52,6 +52,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating 
 
   const titleSize = Math.max(1, flagHeight * 0.3);
   const priceSize = Math.max(0.8, flagHeight * 0.22);
+  const textZOffset = Math.max(0.5, flagHeight * 0.15);
 
   // Vertical offsets: if there's a price, push title up and price down
   const titleY = hasPrice ? flagHeight * 0.15 : 0;
@@ -75,15 +76,12 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating 
             side={THREE.DoubleSide}
             emissive={style.emissive}
             emissiveIntensity={0.3}
-            polygonOffset
-            polygonOffsetFactor={1}
-            polygonOffsetUnits={1}
           />
         </mesh>
 
         {/* Label - front */}
         <Text
-          position={[0, titleY, 0.15]}
+          position={[0, titleY, textZOffset]}
           fontSize={titleSize}
           color={style.textColor}
           anchorX="center"
@@ -94,7 +92,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating 
         </Text>
         {/* Label - back */}
         <Text
-          position={[0, titleY, -0.15]}
+          position={[0, titleY, -textZOffset]}
           fontSize={titleSize}
           color={style.textColor}
           anchorX="center"
@@ -108,7 +106,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating 
         {/* Price - front */}
         {hasPrice && (
           <Text
-            position={[0, priceY, 0.15]}
+            position={[0, priceY, textZOffset]}
             fontSize={priceSize}
             color={style.priceColor}
             anchorX="center"
@@ -121,7 +119,7 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating 
         {/* Price - back */}
         {hasPrice && (
           <Text
-            position={[0, priceY, -0.15]}
+            position={[0, priceY, -textZOffset]}
             fontSize={priceSize}
             color={style.priceColor}
             anchorX="center"
