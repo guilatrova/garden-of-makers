@@ -18,6 +18,7 @@ export interface ForSaleSignProps {
   canopyRadius: number;
   askingPrice?: number | null;
   dealRating?: DealRating | null;
+  onClick?: () => void;
 }
 
 const DEAL_FLAG_STYLES: Record<DealRating, { bg: string; emissive: string; textColor: string; priceColor: string; label: string }> = {
@@ -27,7 +28,7 @@ const DEAL_FLAG_STYLES: Record<DealRating, { bg: string; emissive: string; textC
 
 const DEFAULT_FLAG_STYLE = { bg: "#888888", emissive: "#888888", textColor: "#CCCCCC", priceColor: "#AAAAAA", label: "ON SALE" };
 
-export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating }: ForSaleSignProps) {
+export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating, onClick }: ForSaleSignProps) {
   const flagRef = useRef<THREE.Group>(null);
 
   const hasPrice = askingPrice != null && askingPrice > 0;
@@ -61,7 +62,12 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating 
   return (
     <group position={[0, baseY, 0]}>
       {/* Pole */}
-      <mesh position={[0, poleHeight / 2, 0]}>
+      <mesh
+        position={[0, poleHeight / 2, 0]}
+        onClick={(e) => { if (e.delta <= 5) { e.stopPropagation(); onClick?.(); } }}
+        onPointerOver={() => { document.body.style.cursor = "pointer"; }}
+        onPointerOut={() => { document.body.style.cursor = "auto"; }}
+      >
         <cylinderGeometry args={[poleRadius, poleRadius * 1.2, poleHeight, 6]} />
         <meshStandardMaterial color="#8B4513" roughness={0.9} flatShading />
       </mesh>
@@ -69,7 +75,11 @@ export function ForSaleSign({ treeHeight, canopyRadius, askingPrice, dealRating 
       {/* Flag group - waves */}
       <group ref={flagRef} position={[flagWidth / 2, poleHeight * 0.85, 0]}>
         {/* Flag background */}
-        <mesh>
+        <mesh
+          onClick={(e) => { if (e.delta <= 5) { e.stopPropagation(); onClick?.(); } }}
+          onPointerOver={() => { document.body.style.cursor = "pointer"; }}
+          onPointerOut={() => { document.body.style.cursor = "auto"; }}
+        >
           <planeGeometry args={[flagWidth, flagHeight]} />
           <meshStandardMaterial
             color={style.bg}
