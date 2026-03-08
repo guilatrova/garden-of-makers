@@ -108,9 +108,9 @@ export function StartupDrawer({ startup, onClose, siblingCount = 0, siblingIndex
 
   return (
     <>
-      {/* Backdrop */}
+      {/* Backdrop (transparent, just for click-to-close) */}
       <div
-        className="fixed inset-0 z-40 bg-black/50 transition-opacity"
+        className="fixed inset-0 z-40"
         onClick={onClose}
       />
 
