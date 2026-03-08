@@ -688,6 +688,8 @@ export function ForestScene({ trees, onTreeClick, flyMode, onExitFly, holdGrowth
       gl={{
         antialias: true,
         alpha: false,
+        toneMapping: THREE.ACESFilmicToneMapping,
+        toneMappingExposure: 1.3,
       }}
       style={{
         width: "100vw",
@@ -696,8 +698,8 @@ export function ForestScene({ trees, onTreeClick, flyMode, onExitFly, holdGrowth
       }}
     >
       <Suspense fallback={<LoadingFallback />}>
-        {/* Sky and lighting */}
-        <Skybox timeOfDay={12} shadows />
+        {/* Sunset sky and lighting */}
+        <Skybox shadows />
 
         {/* Dark ground + grid */}
         <Ground />

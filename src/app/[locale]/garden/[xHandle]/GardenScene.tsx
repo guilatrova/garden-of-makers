@@ -7,6 +7,7 @@
 
 import { Suspense, useState, useCallback } from "react";
 import { Canvas } from "@react-three/fiber";
+import * as THREE from "three";
 import { TreeData } from "@/lib/services/tree/types";
 import { Skybox } from "@/components/forest/Skybox";
 import { Terrain } from "@/components/forest/Terrain";
@@ -101,6 +102,8 @@ export function GardenScene({ trees }: GardenSceneProps) {
         gl={{
           antialias: true,
           alpha: false,
+          toneMapping: THREE.ACESFilmicToneMapping,
+          toneMappingExposure: 1.3,
         }}
         style={{
           width: "100%",
@@ -109,8 +112,8 @@ export function GardenScene({ trees }: GardenSceneProps) {
         }}
       >
         <Suspense fallback={<LoadingFallback />}>
-          {/* Lighting and sky */}
-          <Skybox timeOfDay={12} shadows />
+          {/* Sunset sky and lighting */}
+          <Skybox shadows />
 
           {/* Terrain */}
           <Terrain />
