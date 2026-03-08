@@ -63,7 +63,7 @@ function TreeBillboard({ tier, height, canopyColorOverride, glowing }: { tier: i
   if (tier === "seed" || tier === "sprout" || tier === "shrub") {
     const r = tierConfig.canopyRadius;
     return (
-      <mesh position={[0, r * 0.5, 0]}>
+      <mesh position={[0, height * 0.5, 0]}>
         <icosahedronGeometry args={[r, 0]} />
         <meshStandardMaterial
           color={canopyColor}
